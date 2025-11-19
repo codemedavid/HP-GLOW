@@ -141,15 +141,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </button>
         </div>
       ) : (
-        <div
-          onClick={triggerFileSelect}
-          className="w-full max-w-2xl border-2 border-dashed border-sky-300 rounded-2xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-sky-400 hover:bg-sky-50/50 transition-all duration-300 bg-gradient-to-br from-sky-50/30 to-blue-50/30"
-        >
-          <ImageIcon className="h-16 w-16 text-sky-400 mb-4" />
-          <p className="text-lg font-medium text-gray-700 mb-2">Click to upload product image</p>
-          <p className="text-sm text-gray-500 mb-1">or drag and drop</p>
-          <p className="text-xs text-gray-400">JPEG, PNG, WebP (max 5MB)</p>
-        </div>
+            <div
+              onClick={triggerFileSelect}
+              className="w-full max-w-2xl border-2 border-dashed border-sky-300 rounded-2xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-sky-400 hover:bg-sky-50/50 transition-all duration-300 bg-gradient-to-br from-sky-50/30 to-blue-50/30"
+            >
+                  <ImageIcon className="h-16 w-16 text-sky-400 mb-4" />
+                  <p className="text-lg font-medium text-gray-700 mb-2">Click to upload product image</p>
+                  <p className="text-sm text-gray-500 mb-1">or drag and drop</p>
+                  <p className="text-xs text-gray-400">JPEG, PNG, WebP (max 5MB)</p>
+            </div>
       )}
 
       <input

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart } from 'lucide-react';
 import type { CartItem } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import { supabase } from '../lib/supabase';
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -58,23 +59,67 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     }
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
     
-    // Get current date and time
-    const now = new Date();
-    const dateTimeStamp = now.toLocaleString('en-PH', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-    
-    const orderDetails = `
+    try {
+      // Prepare order items for database
+      const orderItems = cartItems.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        variation_id: item.variation?.id || null,
+        variation_name: item.variation?.name || null,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.price * item.quantity,
+        purity_percentage: item.product.purity_percentage
+      }));
+
+      // Save order to database
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          customer_name: fullName,
+          customer_email: email,
+          customer_phone: phone,
+          shipping_address: address,
+          shipping_city: city,
+          shipping_state: state,
+          shipping_zip_code: zipCode,
+          shipping_country: country,
+          order_items: orderItems,
+          total_price: totalPrice,
+          payment_method_id: paymentMethod?.id || null,
+          payment_method_name: paymentMethod?.name || null,
+          notes: notes.trim() || null,
+          order_status: 'new',
+          payment_status: 'pending'
+        }])
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('❌ Error saving order:', orderError);
+        alert(`Failed to save order: ${orderError.message}. Please try again.`);
+        return;
+      }
+
+      console.log('✅ Order saved to database:', orderData);
+
+      // Get current date and time
+      const now = new Date();
+      const dateTimeStamp = now.toLocaleString('en-PH', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      
+      const orderDetails = `
 🧪 MY PEPTIDE JOURNEY - NEW ORDER
 
 📅 ORDER DATE & TIME
@@ -109,19 +154,24 @@ Shipping Fee: To be discussed
 ${paymentMethod?.name || 'N/A'}
 ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
 
+📋 ORDER ID: ${orderData.id}
 
 Please confirm this order. Thank you!
-    `.trim();
+      `.trim();
 
-    // Send order to Facebook Messenger
-    const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/renalyndv?text=${encodedMessage}`;
-    
-    // Open Facebook Messenger
-    window.open(messengerUrl, '_blank');
-    
-    // Show confirmation
-    setStep('confirmation');
+      // Send order to Facebook Messenger (pre-filled, customer still needs to send)
+      const encodedMessage = encodeURIComponent(orderDetails);
+      const messengerUrl = `https://m.me/renalyndv?text=${encodedMessage}`;
+      
+      // Open Facebook Messenger
+      window.open(messengerUrl, '_blank');
+      
+      // Show confirmation
+      setStep('confirmation');
+    } catch (error) {
+      console.error('❌ Error placing order:', error);
+      alert(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+    }
   };
 
   if (step === 'confirmation') {
@@ -137,9 +187,11 @@ Please confirm this order. Thank you!
               <Sparkles className="w-7 h-7 text-yellow-500" />
             </h1>
             <p className="text-gray-600 mb-8 text-base md:text-lg leading-relaxed">
-              Your order has been sent to our Facebook Messenger. 
+              ✅ Your order has been automatically saved to our system!
+              <br />
+              Facebook Messenger has been opened with your order details. 
               <Heart className="inline w-5 h-5 text-pink-500 mx-1" />
-              We will confirm your order and send you the payment details shortly!
+              Please send the message to complete your order. We will confirm and send you the payment details shortly!
             </p>
             
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 mb-8 text-left border-2 border-blue-100">
@@ -150,18 +202,22 @@ Please confirm this order. Thank you!
               <ul className="space-y-3 text-sm md:text-base text-gray-700">
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">1️⃣</span>
-                  <span>We'll confirm your order on Facebook Messenger within 24 hours</span>
+                  <span>Send the message in Facebook Messenger (it's already pre-filled for you)</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">2️⃣</span>
-                  <span>Send payment via your selected method</span>
+                  <span>We'll confirm your order on Facebook Messenger within 24 hours</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">3️⃣</span>
-                  <span>Products carefully packaged and shipped</span>
+                  <span>Send payment via your selected method</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">4️⃣</span>
+                  <span>Products carefully packaged and shipped</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-2xl">5️⃣</span>
                   <span>Delivery in 3-5 business days 🚚</span>
                 </li>
               </ul>
@@ -508,7 +564,7 @@ Please confirm this order. Thank you!
               className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center justify-center gap-2"
             >
               <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
-              Send Order via Messenger
+              Open Messenger to Send Order
             </button>
           </div>
 

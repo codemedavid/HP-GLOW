@@ -230,9 +230,9 @@ const AdminDashboard: React.FC = () => {
         updatePayload.image_url = imageUrlValue;
         
         const preparedData = prepareData(updatePayload);
-
+        
         // Triple-check: Force image_url to be in the payload
-        preparedData.image_url = imageUrlValue;
+          preparedData.image_url = imageUrlValue;
 
         // Strip out any fields that don't exist on the products table
         const dbPayload = pickProductDbFields(preparedData);

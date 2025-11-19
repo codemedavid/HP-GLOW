@@ -178,7 +178,7 @@ export function useMenu() {
       };
       
       // Force image_url to be included even if it was somehow excluded
-      updatePayload.image_url = imageUrlValue;
+        updatePayload.image_url = imageUrlValue;
       
       console.log('📤 Updating product in database:', { 
         id, 
