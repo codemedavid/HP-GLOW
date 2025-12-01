@@ -63,6 +63,16 @@ export const usePaymentMethods = () => {
 
   const addPaymentMethod = async (method: Omit<PaymentMethod, 'created_at' | 'updated_at'>) => {
     try {
+      // Normalize qr_code_url: undefined/null/empty string → empty string (or placeholder)
+      const qrCodeUrl = method.qr_code_url?.trim() || '';
+      
+      console.log('📤 Adding payment method:', { 
+        id: method.id, 
+        name: method.name,
+        qr_code_url: qrCodeUrl,
+        qr_code_url_length: qrCodeUrl.length
+      });
+      
       const { data, error: insertError } = await supabase
         .from('payment_methods')
         .insert({
@@ -70,42 +80,98 @@ export const usePaymentMethods = () => {
           name: method.name,
           account_number: method.account_number,
           account_name: method.account_name,
-          qr_code_url: method.qr_code_url,
+          qr_code_url: qrCodeUrl, // Always explicitly set
           active: method.active,
           sort_order: method.sort_order
         })
-        .select()
+        .select('*, qr_code_url') // Explicitly include qr_code_url in response
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('❌ Supabase insert error:', insertError);
+        throw insertError;
+      }
+
+      console.log('✅ Payment method added:', { 
+        id: data?.id, 
+        qr_code_url: data?.qr_code_url 
+      });
 
       await fetchAllPaymentMethods();
       return data;
     } catch (err) {
-      console.error('Error adding payment method:', err);
+      console.error('❌ Error adding payment method:', err);
       throw err;
     }
   };
 
   const updatePaymentMethod = async (id: string, updates: Partial<PaymentMethod>) => {
     try {
-      const { error: updateError } = await supabase
+      // Create update payload
+      const updatePayload: any = {};
+      
+      // Include all fields that are in the updates object
+      if (updates.name !== undefined) updatePayload.name = updates.name;
+      if (updates.account_number !== undefined) updatePayload.account_number = updates.account_number;
+      if (updates.account_name !== undefined) updatePayload.account_name = updates.account_name;
+      if (updates.active !== undefined) updatePayload.active = updates.active;
+      if (updates.sort_order !== undefined) updatePayload.sort_order = updates.sort_order;
+      
+      // ALWAYS explicitly handle qr_code_url if it's in updates
+      // Normalize: undefined/null → empty string, non-empty → trimmed string
+      if ('qr_code_url' in updates) {
+        if (updates.qr_code_url !== undefined && updates.qr_code_url !== null) {
+          const urlString = String(updates.qr_code_url).trim();
+          updatePayload.qr_code_url = urlString === '' ? '' : urlString;
+        } else {
+          updatePayload.qr_code_url = '';
+        }
+      }
+      
+      console.log('📤 Updating payment method:', { 
+        id, 
+        qr_code_url: updatePayload.qr_code_url,
+        qr_code_url_type: typeof updatePayload.qr_code_url,
+        qr_code_url_length: updatePayload.qr_code_url?.length || 0,
+        has_qr_code_url: 'qr_code_url' in updatePayload,
+        payload_keys: Object.keys(updatePayload),
+        fullPayload: updatePayload 
+      });
+      
+      const { data, error: updateError } = await supabase
         .from('payment_methods')
-        .update({
-          name: updates.name,
-          account_number: updates.account_number,
-          account_name: updates.account_name,
-          qr_code_url: updates.qr_code_url,
-          active: updates.active,
-          sort_order: updates.sort_order
-        })
-        .eq('id', id);
+        .update(updatePayload)
+        .eq('id', id)
+        .select('*, qr_code_url') // Explicitly include qr_code_url in response
+        .single();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ Supabase update error:', updateError);
+        console.error('❌ Error details:', JSON.stringify(updateError, null, 2));
+        throw updateError;
+      }
+
+      console.log('✅ Payment method updated:', { 
+        id, 
+        qr_code_url: data?.qr_code_url,
+        qr_code_url_type: typeof data?.qr_code_url,
+        qr_code_url_length: data?.qr_code_url?.length || 0
+      });
+      
+      // Verify the qr_code_url was actually saved
+      if ('qr_code_url' in updatePayload && updatePayload.qr_code_url && data?.qr_code_url !== updatePayload.qr_code_url) {
+        console.warn('⚠️ WARNING: qr_code_url mismatch!', {
+          sent: updatePayload.qr_code_url,
+          received: data?.qr_code_url
+        });
+      } else if ('qr_code_url' in updatePayload && updatePayload.qr_code_url && data?.qr_code_url === updatePayload.qr_code_url) {
+        console.log('✅ QR code URL verified - matches what was sent');
+      }
 
       await fetchAllPaymentMethods();
+      return data;
     } catch (err) {
-      console.error('Error updating payment method:', err);
+      console.error('❌ Error updating payment method:', err);
       throw err;
     }
   };

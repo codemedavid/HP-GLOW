@@ -70,7 +70,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
     }
     
     // QR code is optional but warn if missing
-    if (!formData.qr_code_url) {
+    if (!formData.qr_code_url || formData.qr_code_url.trim() === '') {
       const proceed = confirm('No QR code image provided. Continue without QR code?');
       if (!proceed) return;
     }
@@ -83,14 +83,30 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
     }
 
     try {
+      // Prepare data for saving - ensure qr_code_url is properly formatted
+      const saveData = {
+        ...formData,
+        qr_code_url: formData.qr_code_url?.trim() || '', // Normalize qr_code_url
+      };
+
+      console.log('💾 Saving payment method:', {
+        id: saveData.id,
+        name: saveData.name,
+        qr_code_url: saveData.qr_code_url,
+        qr_code_url_length: saveData.qr_code_url.length,
+      });
+
       if (editingMethod) {
-        await updatePaymentMethod(editingMethod.id, formData);
+        await updatePaymentMethod(editingMethod.id, saveData);
       } else {
-        await addPaymentMethod(formData);
+        await addPaymentMethod(saveData);
       }
+      
+      console.log('✅ Payment method saved successfully');
       setCurrentView('list');
       setEditingMethod(null);
     } catch (error) {
+      console.error('❌ Error saving payment method:', error);
       alert(error instanceof Error ? error.message : 'Failed to save payment method');
     }
   };
@@ -218,8 +234,25 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
                   Upload a QR code image or paste an image URL. If upload fails, you can use the URL input below.
                 </p>
                 <ImageUpload
-                  currentImage={formData.qr_code_url}
-                  onImageChange={(imageUrl) => setFormData({ ...formData, qr_code_url: imageUrl || '' })}
+                  currentImage={formData.qr_code_url || undefined}
+                  onImageChange={(imageUrl) => {
+                    // Normalize value: undefined/null → empty string, non-empty string → trimmed URL
+                    let newQrCodeUrl: string = '';
+                    if (imageUrl) {
+                      const trimmed = imageUrl.trim();
+                      newQrCodeUrl = trimmed === '' ? '' : trimmed;
+                    }
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      qr_code_url: newQrCodeUrl,
+                    }));
+
+                    console.log('🖼️ Payment method QR code updated in formData:', {
+                      original: imageUrl,
+                      saved: newQrCodeUrl,
+                    });
+                  }}
                   folder="menu-images"
                 />
               </div>
