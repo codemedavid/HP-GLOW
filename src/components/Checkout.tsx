@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Instagram, Phone } from 'lucide-react';
-import type { CartItem } from '../types';
+import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Instagram, Phone, Tag, X } from 'lucide-react';
+import type { CartItem, Voucher } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import { useVouchers } from '../hooks/useVouchers';
 import { supabase } from '../lib/supabase';
 
 interface CheckoutProps {
@@ -12,13 +13,14 @@ interface CheckoutProps {
 
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { paymentMethods } = usePaymentMethods();
+  const { validateVoucher } = useVouchers();
   const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details');
-  
+
   // Customer Details
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  
+
   // Shipping Details
   const [address, setAddress] = useState('');
   const [barangay, setBarangay] = useState('');
@@ -26,12 +28,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [shippingLocation, setShippingLocation] = useState<'NCR' | 'LUZON' | 'VISAYAS_MINDANAO' | ''>('');
-  
+
   // Payment
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [contactMethod, setContactMethod] = useState<'instagram' | 'viber' | ''>('');
   const [notes, setNotes] = useState('');
-  
+
+  // Voucher
+  const [voucherCode, setVoucherCode] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState<Voucher | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherError, setVoucherError] = useState('');
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+
   // Order message for copying
   const [orderMessage, setOrderMessage] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -50,7 +59,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   // Calculate shipping fee based on location
   const calculateShippingFee = (): number => {
     if (!shippingLocation) return 0;
-    
+
     switch (shippingLocation) {
       case 'NCR':
         return 160;
@@ -62,11 +71,44 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
         return 0;
     }
   };
-  
-  const shippingFee = calculateShippingFee();
-  const finalTotal = totalPrice + shippingFee;
 
-  const isDetailsValid = 
+  const shippingFee = calculateShippingFee();
+  const finalTotal = totalPrice - voucherDiscount + shippingFee;
+
+  // Apply voucher handler
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      setVoucherError('Please enter a voucher code');
+      return;
+    }
+
+    setIsApplyingVoucher(true);
+    setVoucherError('');
+
+    const result = await validateVoucher(voucherCode.trim(), totalPrice);
+
+    if (result.valid && result.voucher) {
+      setAppliedVoucher(result.voucher);
+      setVoucherDiscount(result.discount);
+      setVoucherError('');
+    } else {
+      setAppliedVoucher(null);
+      setVoucherDiscount(0);
+      setVoucherError(result.error || 'Invalid voucher code');
+    }
+
+    setIsApplyingVoucher(false);
+  };
+
+  // Remove voucher handler
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
+    setVoucherCode('');
+    setVoucherError('');
+  };
+
+  const isDetailsValid =
     fullName.trim() !== '' &&
     email.trim() !== '' &&
     phone.trim() !== '' &&
@@ -89,14 +131,14 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
       alert('Please select your preferred contact method (Instagram or Viber).');
       return;
     }
-    
+
     if (!shippingLocation) {
       alert('Please select your shipping location.');
       return;
     }
-    
+
     const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
-    
+
     try {
       // Prepare order items for database
       const orderItems = cartItems.map(item => ({
@@ -139,15 +181,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
       if (orderError) {
         console.error('❌ Error saving order:', orderError);
-        
+
         // Provide helpful error message if table doesn't exist
         let errorMessage = orderError.message;
-        if (orderError.message?.includes('Could not find the table') || 
-            orderError.message?.includes('relation "public.orders" does not exist') ||
-            orderError.message?.includes('schema cache')) {
+        if (orderError.message?.includes('Could not find the table') ||
+          orderError.message?.includes('relation "public.orders" does not exist') ||
+          orderError.message?.includes('schema cache')) {
           errorMessage = `The orders table doesn't exist in the database. Please run the migration: supabase/migrations/20250117000000_ensure_orders_table.sql in your Supabase SQL Editor.`;
         }
-        
+
         alert(`Failed to save order: ${errorMessage}\n\nPlease contact support if this issue persists.`);
         return;
       }
@@ -166,7 +208,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
         second: '2-digit',
         hour12: true
       });
-      
+
       const orderDetails = `
 ✨ HP GLOW - NEW ORDER
 
@@ -185,14 +227,14 @@ ${city}, ${state} ${zipCode}
 
 🛒 ORDER DETAILS
 ${cartItems.map(item => {
-  let line = `• ${item.product.name}`;
-  if (item.variation) {
-    line += ` (${item.variation.name})`;
-  }
-  line += ` x${item.quantity} - ₱${(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
-  line += `\n  Purity: ${item.product.purity_percentage}%`;
-  return line;
-}).join('\n\n')}
+        let line = `• ${item.product.name}`;
+        if (item.variation) {
+          line += ` (${item.variation.name})`;
+        }
+        line += ` x${item.quantity} - ₱${(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
+        line += `\n  Purity: ${item.product.purity_percentage}%`;
+        return line;
+      }).join('\n\n')}
 
 💰 PRICING
 Product Total: ₱${totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
@@ -218,16 +260,16 @@ Please confirm this order. Thank you!
       setOrderMessage(orderDetails);
 
       // Open contact method based on selection
-      const contactUrl = contactMethod === 'instagram' 
+      const contactUrl = contactMethod === 'instagram'
         ? 'https://www.instagram.com/hpglowpeptides'
         : contactMethod === 'viber'
-        ? 'viber://chat?number=09062349763'
-        : null;
-      
+          ? 'viber://chat?number=09062349763'
+          : null;
+
       if (contactUrl) {
         try {
           const contactWindow = window.open(contactUrl, '_blank');
-          
+
           if (!contactWindow || contactWindow.closed || typeof contactWindow.closed === 'undefined') {
             console.warn('⚠️ Popup blocked or contact method failed to open');
             setContactOpened(false);
@@ -244,7 +286,7 @@ Please confirm this order. Thank you!
           setContactOpened(false);
         }
       }
-      
+
       // Show confirmation
       setStep('confirmation');
     } catch (error) {
@@ -279,12 +321,12 @@ Please confirm this order. Thank you!
   };
 
   const handleOpenContact = () => {
-    const contactUrl = contactMethod === 'instagram' 
+    const contactUrl = contactMethod === 'instagram'
       ? 'https://www.instagram.com/hpglowpeptides'
       : contactMethod === 'viber'
-      ? 'viber://chat?number=09062349763'
-      : null;
-    
+        ? 'viber://chat?number=09062349763'
+        : null;
+
     if (contactUrl) {
       window.open(contactUrl, '_blank');
     }
@@ -352,14 +394,14 @@ Please confirm this order. Thank you!
                 {contactMethod === 'instagram' ? <Instagram className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
                 Open {contactMethod === 'instagram' ? 'Instagram' : 'Viber'}
               </button>
-              
+
               {!contactOpened && (
                 <p className="text-sm text-gray-600">
                   💡 If {contactMethod === 'instagram' ? 'Instagram' : 'Viber'} doesn't open, copy the message above and paste it manually
                 </p>
               )}
             </div>
-            
+
             <div className="bg-gradient-to-r from-gold-50 to-gold-100/50 rounded-2xl p-6 mb-8 text-left border-2 border-gold-300/30">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 What Happens Next?
@@ -563,33 +605,30 @@ Please confirm this order. Thank you!
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <button
                     onClick={() => setShippingLocation('NCR')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      shippingLocation === 'NCR'
-                        ? 'border-gold-500 bg-gold-50'
-                        : 'border-gray-200 hover:border-gold-300'
-                    }`}
+                    className={`p-3 rounded-lg border-2 transition-all ${shippingLocation === 'NCR'
+                      ? 'border-gold-500 bg-gold-50'
+                      : 'border-gray-200 hover:border-gold-300'
+                      }`}
                   >
                     <p className="font-semibold text-gray-900 text-sm">NCR</p>
                     <p className="text-xs text-gray-500">₱160</p>
                   </button>
                   <button
                     onClick={() => setShippingLocation('LUZON')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      shippingLocation === 'LUZON'
-                        ? 'border-gold-500 bg-gold-50'
-                        : 'border-gray-200 hover:border-gold-300'
-                    }`}
+                    className={`p-3 rounded-lg border-2 transition-all ${shippingLocation === 'LUZON'
+                      ? 'border-gold-500 bg-gold-50'
+                      : 'border-gray-200 hover:border-gold-300'
+                      }`}
                   >
                     <p className="font-semibold text-gray-900 text-sm">LUZON</p>
                     <p className="text-xs text-gray-500">₱165</p>
                   </button>
                   <button
                     onClick={() => setShippingLocation('VISAYAS_MINDANAO')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      shippingLocation === 'VISAYAS_MINDANAO'
-                        ? 'border-gold-500 bg-gold-50'
-                        : 'border-gray-200 hover:border-gold-300'
-                    }`}
+                    className={`p-3 rounded-lg border-2 transition-all ${shippingLocation === 'VISAYAS_MINDANAO'
+                      ? 'border-gold-500 bg-gold-50'
+                      : 'border-gray-200 hover:border-gold-300'
+                      }`}
                   >
                     <p className="font-semibold text-gray-900 text-sm">VISAYAS & MINDANAO</p>
                     <p className="text-xs text-gray-500">₱190</p>
@@ -600,11 +639,10 @@ Please confirm this order. Thank you!
               <button
                 onClick={handleProceedToPayment}
                 disabled={!isDetailsValid}
-                className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg transition-all transform shadow-lg ${
-                  isDetailsValid
-                    ? 'bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white hover:scale-105 hover:shadow-xl border border-gold-500/20'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg transition-all transform shadow-lg ${isDetailsValid
+                  ? 'bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white hover:scale-105 hover:shadow-xl border border-gold-500/20'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
                 Proceed to Payment ✨
               </button>
@@ -617,7 +655,7 @@ Please confirm this order. Thank you!
                   Order Summary
                   <Sparkles className="w-5 h-5 text-gold-600" />
                 </h2>
-                
+
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item, index) => (
                     <div key={index} className="pb-4 border-b border-gray-200">
@@ -651,6 +689,51 @@ Please confirm this order. Thank you!
                       {shippingLocation ? `₱${shippingFee.toLocaleString('en-PH', { minimumFractionDigits: 0 })}` : 'Select location'}
                     </span>
                   </div>
+
+                  {/* Voucher Section */}
+                  <div className="border-t border-gray-200 pt-3">
+                    {!appliedVoucher ? (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={voucherCode}
+                            onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                            placeholder="Voucher code"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={handleApplyVoucher}
+                            disabled={isApplyingVoucher || !voucherCode.trim()}
+                            className="px-3 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-black text-sm font-medium rounded-lg hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          >
+                            <Tag className="w-4 h-4" />
+                            {isApplyingVoucher ? '...' : 'Apply'}
+                          </button>
+                        </div>
+                        {voucherError && (
+                          <p className="text-xs text-red-500">{voucherError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Tag className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-green-700 font-medium">{appliedVoucher.code}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-green-600 font-medium">-₱{voucherDiscount.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
+                          <button
+                            onClick={handleRemoveVoucher}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="border-t-2 border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-900">Total</span>
@@ -705,11 +788,10 @@ Please confirm this order. Thank you!
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setShippingLocation('NCR')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                    shippingLocation === 'NCR'
-                      ? 'border-gold-500 bg-gold-50'
-                      : 'border-gray-200 hover:border-gold-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${shippingLocation === 'NCR'
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300'
+                    }`}
                 >
                   <div className="text-left">
                     <p className="font-semibold text-gray-900">NCR</p>
@@ -723,11 +805,10 @@ Please confirm this order. Thank you!
                 </button>
                 <button
                   onClick={() => setShippingLocation('LUZON')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                    shippingLocation === 'LUZON'
-                      ? 'border-gold-500 bg-gold-50'
-                      : 'border-gray-200 hover:border-gold-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${shippingLocation === 'LUZON'
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300'
+                    }`}
                 >
                   <div className="text-left">
                     <p className="font-semibold text-gray-900">LUZON</p>
@@ -741,11 +822,10 @@ Please confirm this order. Thank you!
                 </button>
                 <button
                   onClick={() => setShippingLocation('VISAYAS_MINDANAO')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                    shippingLocation === 'VISAYAS_MINDANAO'
-                      ? 'border-gold-500 bg-gold-50'
-                      : 'border-gray-200 hover:border-gold-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${shippingLocation === 'VISAYAS_MINDANAO'
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300'
+                    }`}
                 >
                   <div className="text-left">
                     <p className="font-semibold text-gray-900">VISAYAS & MINDANAO</p>
@@ -768,17 +848,16 @@ Please confirm this order. Thank you!
                 </div>
                 Payment Method
               </h2>
-              
+
               <div className="grid grid-cols-1 gap-4 mb-6">
                 {paymentMethods.map((method) => (
                   <button
                     key={method.id}
                     onClick={() => setSelectedPaymentMethod(method.id)}
-                    className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                      selectedPaymentMethod === method.id
-                        ? 'border-gold-500 bg-gold-50'
-                        : 'border-gray-200 hover:border-gold-300'
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${selectedPaymentMethod === method.id
+                      ? 'border-gold-500 bg-gold-50'
+                      : 'border-gray-200 hover:border-gold-300'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center">
@@ -806,7 +885,7 @@ Please confirm this order. Thank you!
                     <p><strong>Account Name:</strong> {paymentMethodInfo.account_name}</p>
                     <p><strong>Amount to Pay:</strong> <span className="text-xl font-bold text-gold-600">₱{finalTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span></p>
                   </div>
-                  
+
                   {paymentMethodInfo.qr_code_url && (
                     <div className="flex justify-center">
                       <div className="bg-white p-4 rounded-lg">
@@ -832,11 +911,10 @@ Please confirm this order. Thank you!
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setContactMethod('instagram')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                    contactMethod === 'instagram'
-                      ? 'border-gold-500 bg-gold-50'
-                      : 'border-gray-200 hover:border-gold-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${contactMethod === 'instagram'
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Instagram className="w-6 h-6 text-gold-600" />
@@ -853,11 +931,10 @@ Please confirm this order. Thank you!
                 </button>
                 <button
                   onClick={() => setContactMethod('viber')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
-                    contactMethod === 'viber'
-                      ? 'border-gold-500 bg-gold-50'
-                      : 'border-gray-200 hover:border-gold-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${contactMethod === 'viber'
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Phone className="w-6 h-6 text-gold-600" />
@@ -895,11 +972,10 @@ Please confirm this order. Thank you!
             <button
               onClick={handlePlaceOrder}
               disabled={!contactMethod || !shippingLocation}
-              className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg transition-all flex items-center justify-center gap-2 ${
-                contactMethod && shippingLocation
-                  ? 'bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white hover:shadow-xl transform hover:scale-105 border border-gold-500/20'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg transition-all flex items-center justify-center gap-2 ${contactMethod && shippingLocation
+                ? 'bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white hover:shadow-xl transform hover:scale-105 border border-gold-500/20'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
             >
               <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
               Complete Order
@@ -913,7 +989,7 @@ Please confirm this order. Thank you!
                 Final Summary
                 <Sparkles className="w-5 h-5 text-gold-600" />
               </h2>
-              
+
               {/* Customer Info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6 text-sm">
                 <p className="font-semibold text-gray-900 mb-2">{fullName}</p>

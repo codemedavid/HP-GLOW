@@ -11,6 +11,7 @@ import FloatingCartButton from './components/FloatingCartButton';
 import Footer from './components/Footer';
 import AdminDashboard from './components/AdminDashboard';
 import COA from './components/COA';
+import FAQPage from './components/FAQPage';
 import { useMenu } from './hooks/useMenu';
 import { useCOAPageSetting } from './hooks/useCOAPageSetting';
 
@@ -31,37 +32,37 @@ function MainApp() {
   };
 
   // Filter products based on selected category
-  const filteredProducts = selectedCategory === 'all' 
-    ? menuItems 
+  const filteredProducts = selectedCategory === 'all'
+    ? menuItems
     : menuItems.filter(item => item.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-white font-inter flex flex-col">
-      <Header 
+      <Header
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
       />
-      
+
       {currentView === 'menu' && (
         <>
           <SubNav selectedCategory={selectedCategory} onCategoryClick={handleCategoryClick} />
           <MobileNav activeCategory={selectedCategory} onCategoryClick={handleCategoryClick} />
         </>
       )}
-      
+
       <main className="flex-grow">
         {currentView === 'menu' && (
-          <Menu 
+          <Menu
             menuItems={filteredProducts}
             addToCart={cart.addToCart}
             cartItems={cart.cartItems}
             updateQuantity={cart.updateQuantity}
           />
         )}
-        
+
         {currentView === 'cart' && (
-          <Cart 
+          <Cart
             cartItems={cart.cartItems}
             updateQuantity={cart.updateQuantity}
             removeFromCart={cart.removeFromCart}
@@ -71,19 +72,19 @@ function MainApp() {
             onCheckout={() => handleViewChange('checkout')}
           />
         )}
-        
+
         {currentView === 'checkout' && (
-          <Checkout 
+          <Checkout
             cartItems={cart.cartItems}
             totalPrice={cart.getTotalPrice()}
             onBack={() => handleViewChange('cart')}
           />
         )}
       </main>
-      
+
       {currentView === 'menu' && (
         <>
-          <FloatingCartButton 
+          <FloatingCartButton
             itemCount={cart.getTotalItems()}
             onCartClick={() => handleViewChange('cart')}
           />
@@ -102,6 +103,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainApp />} />
         {coaPageEnabled && <Route path="/coa" element={<COA />} />}
+        <Route path="/faq" element={<FAQPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>

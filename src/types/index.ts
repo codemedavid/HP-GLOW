@@ -91,3 +91,31 @@ export interface OrderDetails {
   payment_method: string;
   notes?: string;
 }
+
+// Voucher Types
+export interface Voucher {
+  id: string;
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  max_discount: number | null;
+  min_purchase_amount: number;
+  max_uses: number | null;
+  times_used: number;
+  active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// FAQ Types
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

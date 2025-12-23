@@ -5,7 +5,7 @@ import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const { coaPageEnabled } = useCOAPageSetting();
-  
+
   // Contact Links
   const messengerMessage = encodeURIComponent('Hi! I would like to inquire about your products.');
   const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
@@ -17,12 +17,12 @@ const Footer: React.FC = () => {
       {/* Compact Footer Content */}
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 max-w-5xl mx-auto">
-          
+
           {/* Brand Section */}
           <div className="flex items-center gap-3">
-            <img 
-              src="/logo.jpg" 
-              alt="HP GLOW" 
+            <img
+              src="/logo.jpg"
+              alt="HP GLOW"
               className="w-10 h-10 md:w-12 md:h-12 rounded-lg shadow-xl object-cover border-2 border-gold-500/30"
             />
             <div className="text-center md:text-left">
@@ -46,6 +46,13 @@ const Footer: React.FC = () => {
                 <span className="sm:hidden">Reports</span>
               </a>
             )}
+            <a
+              href="/faq"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-3 py-2 md:px-4 md:py-2 rounded-lg transition-all font-medium text-xs md:text-sm border border-gold-500/30"
+            >
+              <MessageCircle className="w-3 h-3 md:w-4 md:h-4" />
+              <span>FAQ</span>
+            </a>
             <a
               href={instagramUrl}
               target="_blank"
@@ -84,7 +91,7 @@ const Footer: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center space-y-1">
             <p className="text-[10px] md:text-xs text-gray-400 flex items-center justify-center gap-1.5 flex-wrap">
-              Made with 
+              Made with
               <Heart className="w-3 h-3 text-gold-500 animate-pulse" />
               © {currentYear} HP GLOW. All rights reserved.
             </p>
