@@ -13,11 +13,12 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const [newVariation, setNewVariation] = useState({
     name: '',
     quantity_mg: 5.0,
     price: product.base_price,
+    discount_price: null as number | null,
     stock_quantity: 0
   });
 
@@ -25,6 +26,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
     name: '',
     quantity_mg: 5.0,
     price: product.base_price,
+    discount_price: null as number | null,
     stock_quantity: 0
   });
 
@@ -41,6 +43,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
         name: newVariation.name,
         quantity_mg: newVariation.quantity_mg,
         price: newVariation.price,
+        discount_price: newVariation.discount_price,
         stock_quantity: newVariation.stock_quantity
       });
 
@@ -49,6 +52,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
           name: '',
           quantity_mg: 5.0,
           price: product.base_price,
+          discount_price: null,
           stock_quantity: 0
         });
         setIsAdding(false);
@@ -69,6 +73,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
       name: variation.name,
       quantity_mg: variation.quantity_mg,
       price: variation.price,
+      discount_price: variation.discount_price,
       stock_quantity: variation.stock_quantity
     });
     setIsAdding(false);
@@ -164,7 +169,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
                       // Edit Mode
                       <div className="bg-white border-2 border-blue-300 rounded-xl p-4 space-y-4">
                         <h4 className="font-bold text-gray-900 mb-4">Edit Variation</h4>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -193,13 +198,28 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
 
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Price (₱) *
+                              Original Price (₱) *
                             </label>
                             <input
                               type="number"
                               step="0.01"
                               value={editingVariation.price}
                               onChange={(e) => setEditingVariation({ ...editingVariation, price: parseFloat(e.target.value) || 0 })}
+                              className="input-field"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Discounted Price (₱)
+                              <span className="text-xs text-gray-500 font-normal ml-1">(leave empty if no discount)</span>
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editingVariation.discount_price || ''}
+                              onChange={(e) => setEditingVariation({ ...editingVariation, discount_price: e.target.value ? parseFloat(e.target.value) : null })}
+                              placeholder="e.g., 999"
                               className="input-field"
                             />
                           </div>
@@ -238,7 +258,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
                     ) : (
                       // View Mode
                       <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-xl p-4 flex items-center justify-between">
-                        <div className="flex-1 grid grid-cols-4 gap-4">
+                        <div className="flex-1 grid grid-cols-5 gap-4">
                           <div>
                             <div className="text-xs text-gray-500 mb-1">Size Name</div>
                             <div className="font-bold text-gray-900">{variation.name}</div>
@@ -249,7 +269,20 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
                           </div>
                           <div>
                             <div className="text-xs text-gray-500 mb-1">Price</div>
-                            <div className="font-semibold text-teal-600">₱{variation.price.toLocaleString()}</div>
+                            {variation.discount_price ? (
+                              <div>
+                                <div className="font-semibold text-gray-400 line-through text-sm">₱{variation.price.toLocaleString()}</div>
+                                <div className="font-bold text-green-600">₱{variation.discount_price.toLocaleString()}</div>
+                              </div>
+                            ) : (
+                              <div className="font-semibold text-teal-600">₱{variation.price.toLocaleString()}</div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">Discount</div>
+                            <div className={`font-semibold ${variation.discount_price ? 'text-green-600' : 'text-gray-400'}`}>
+                              {variation.discount_price ? `Save ₱${(variation.price - variation.discount_price).toLocaleString()}` : 'None'}
+                            </div>
                           </div>
                           <div>
                             <div className="text-xs text-gray-500 mb-1">Stock</div>
@@ -298,7 +331,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
             {isAdding && (
               <div className="bg-white border-2 border-teal-300 rounded-xl p-6 space-y-4">
                 <h4 className="font-bold text-gray-900 mb-4">New Size Variation</h4>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -328,13 +361,28 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose })
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Price (₱) *
+                      Original Price (₱) *
                     </label>
                     <input
                       type="number"
                       step="0.01"
                       value={newVariation.price}
                       onChange={(e) => setNewVariation({ ...newVariation, price: parseFloat(e.target.value) || 0 })}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Discounted Price (₱)
+                      <span className="text-xs text-gray-500 font-normal ml-1">(optional)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newVariation.discount_price || ''}
+                      onChange={(e) => setNewVariation({ ...newVariation, discount_price: e.target.value ? parseFloat(e.target.value) : null })}
+                      placeholder="Leave empty if no discount"
                       className="input-field"
                     />
                   </div>

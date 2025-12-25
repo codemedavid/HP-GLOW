@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Package, Beaker, ShoppingCart, Plus, Minus, Sparkles, Shield } from 'lucide-react';
+import { X, Package, Beaker, ShoppingCart, Plus, Minus, Sparkles } from 'lucide-react';
 import type { Product, ProductVariation } from '../types';
 
 interface ProductDetailModalProps {
@@ -21,8 +21,37 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
   );
   const [quantity, setQuantity] = useState(1);
 
-  const hasDiscount = product.discount_active && product.discount_price;
-  const currentPrice = selectedVariation?.price || (hasDiscount ? product.discount_price! : product.base_price);
+  // Check if there's a discount - either at product level or variation level
+  const hasVariationDiscount = selectedVariation && selectedVariation.discount_price !== null && selectedVariation.discount_price !== undefined;
+  const hasProductDiscount = product.discount_active && product.discount_price;
+  const hasDiscount = hasVariationDiscount || hasProductDiscount;
+
+  // Get original and current prices based on variation or product
+  const getOriginalPrice = () => {
+    if (selectedVariation) {
+      return selectedVariation.price; // Variation's base price is always the original
+    }
+    return product.base_price;
+  };
+
+  const getCurrentPrice = () => {
+    if (selectedVariation) {
+      // If variation has its own discount, use that
+      if (selectedVariation.discount_price !== null && selectedVariation.discount_price !== undefined) {
+        return selectedVariation.discount_price;
+      }
+      return selectedVariation.price;
+    }
+    // No variation - use product-level pricing
+    if (hasProductDiscount) {
+      return product.discount_price!;
+    }
+    return product.base_price;
+  };
+
+  const originalPrice = getOriginalPrice();
+  const currentPrice = getCurrentPrice();
+  const savingsAmount = hasDiscount ? originalPrice - currentPrice : 0;
 
   // Check if product has any available stock
   const hasAnyStock = product.variations && product.variations.length > 0
@@ -77,8 +106,8 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
               {/* Product Image */}
               {product.image_url && (
                 <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl overflow-hidden border-2 border-gold-300/30 shadow-lg">
-                  <img 
-                    src={product.image_url} 
+                  <img
+                    src={product.image_url}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
@@ -129,12 +158,11 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 text-[11px] sm:text-xs md:text-sm">Stock:</span>
-                    <span className={`font-medium text-[11px] sm:text-xs md:text-sm ${
-                      (product.variations && product.variations.length > 0
-                        ? product.variations.some(v => v.stock_quantity > 0)
-                        : product.stock_quantity > 0)
-                        ? 'text-gold-600' 
-                        : 'text-red-600'
+                    <span className={`font-medium text-[11px] sm:text-xs md:text-sm ${(product.variations && product.variations.length > 0
+                      ? product.variations.some(v => v.stock_quantity > 0)
+                      : product.stock_quantity > 0)
+                      ? 'text-gold-600'
+                      : 'text-red-600'
                       }`}>
                       {product.variations && product.variations.length > 0
                         ? product.variations.reduce((sum, v) => sum + v.stock_quantity, 0)
@@ -152,15 +180,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                 <div className="text-center mb-3 sm:mb-4">
                   {hasDiscount && (
                     <div className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-400 line-through mb-0.5 sm:mb-1">
-                      ₱{product.base_price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                      ₱{originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                     </div>
                   )}
                   <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gold-600">
                     ₱{currentPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                   </div>
-                  {hasDiscount && (
+                  {hasDiscount && savingsAmount > 0 && (
                     <div className="inline-block bg-gradient-to-r from-black to-gray-900 text-white px-2 py-0.5 sm:px-2.5 sm:py-1 md:px-3 md:py-1 rounded-full text-[10px] sm:text-xs md:text-sm font-bold mt-1 sm:mt-1.5 md:mt-2 border border-gold-500/20">
-                      Save ₱{(product.base_price - product.discount_price!).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                      Save ₱{savingsAmount.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                     </div>
                   )}
                 </div>
@@ -183,14 +211,17 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                     >
                       {product.variations.map((variation) => {
                         const isOutOfStock = variation.stock_quantity === 0;
+                        const hasVariationDiscount = variation.discount_price !== null && variation.discount_price !== undefined;
+                        const displayPrice = hasVariationDiscount ? variation.discount_price! : variation.price;
                         return (
-                          <option 
-                            key={variation.id} 
+                          <option
+                            key={variation.id}
                             value={variation.id}
                             disabled={isOutOfStock}
                             className={isOutOfStock ? 'line-through text-gray-400 italic' : ''}
                           >
-                            {variation.name} - ₱{variation.price.toLocaleString('en-PH')}
+                            {variation.name} - ₱{displayPrice.toLocaleString('en-PH')}
+                            {hasVariationDiscount ? ` (was ₱${variation.price.toLocaleString('en-PH')})` : ''}
                             {isOutOfStock ? ' (Out of Stock)' : ''}
                           </option>
                         );
@@ -253,15 +284,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
               {product.available && (product.variations && product.variations.length > 0
                 ? product.variations.some(v => v.stock_quantity > 0 && v.stock_quantity < 10)
                 : product.stock_quantity < 10 && product.stock_quantity > 0) && (
-                <div className="bg-gold-50 border border-gold-300 sm:border-2 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                  <p className="text-xs sm:text-sm text-gold-800 font-semibold flex items-center gap-1.5 sm:gap-2">
-                    <span className="text-base sm:text-lg md:text-xl">⚠️</span>
-                    Low stock! Only {product.variations && product.variations.length > 0
-                      ? product.variations.reduce((sum, v) => sum + v.stock_quantity, 0)
-                      : product.stock_quantity} units left
-                  </p>
-                </div>
-              )}
+                  <div className="bg-gold-50 border border-gold-300 sm:border-2 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gold-800 font-semibold flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-base sm:text-lg md:text-xl">⚠️</span>
+                      Low stock! Only {product.variations && product.variations.length > 0
+                        ? product.variations.reduce((sum, v) => sum + v.stock_quantity, 0)
+                        : product.stock_quantity} units left
+                    </p>
+                  </div>
+                )}
             </div>
           </div>
         </div>

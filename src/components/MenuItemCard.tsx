@@ -10,9 +10,9 @@ interface MenuItemCardProps {
   onProductClick?: (product: Product) => void;
 }
 
-const MenuItemCard: React.FC<MenuItemCardProps> = ({ 
-  product, 
-  onAddToCart, 
+const MenuItemCard: React.FC<MenuItemCardProps> = ({
+  product,
+  onAddToCart,
   cartQuantity = 0,
   onProductClick,
 }) => {
@@ -21,13 +21,22 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   );
   const [quantity, setQuantity] = useState(1);
 
-  const currentPrice = selectedVariation 
-    ? selectedVariation.price 
-    : (product.discount_active && product.discount_price) 
-      ? product.discount_price 
+  // Check for variation-level discount first, then product-level discount
+  const hasVariationDiscount = selectedVariation && selectedVariation.discount_price !== null && selectedVariation.discount_price !== undefined;
+  const hasProductDiscount = !selectedVariation && product.discount_active && product.discount_price;
+  const hasDiscount = hasVariationDiscount || hasProductDiscount;
+
+  // Calculate the current price based on discounts
+  const currentPrice = selectedVariation
+    ? (hasVariationDiscount ? selectedVariation.discount_price! : selectedVariation.price)
+    : (product.discount_active && product.discount_price)
+      ? product.discount_price
       : product.base_price;
 
-  const hasDiscount = !selectedVariation && product.discount_active && product.discount_price;
+  // Calculate original price for comparison
+  const originalPrice = selectedVariation
+    ? selectedVariation.price
+    : product.base_price;
 
   const handleAddToCart = () => {
     onAddToCart(product, selectedVariation, quantity);
@@ -35,12 +44,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   };
 
   const availableStock = selectedVariation ? selectedVariation.stock_quantity : product.stock_quantity;
-  
+
   // Check if product has any available stock (either in variations or product itself)
   const hasAnyStock = product.variations && product.variations.length > 0
     ? product.variations.some(v => v.stock_quantity > 0)
     : product.stock_quantity > 0;
-  
+
   const incrementQuantity = () => {
     setQuantity(prev => {
       if (prev >= availableStock) {
@@ -50,13 +59,13 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       return prev + 1;
     });
   };
-  
+
   const decrementQuantity = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
 
   return (
     <div className="card card-hover overflow-hidden animate-fadeIn relative group flex flex-col h-full">
       {/* Click overlay for product details */}
-      <div 
+      <div
         onClick={() => onProductClick?.(product)}
         className="absolute inset-0 z-10 cursor-pointer"
         title="Tap for full details"
@@ -73,8 +82,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       {/* Product Image */}
       <div className="relative h-28 sm:h-36 md:h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b border-gray-200">
         {product.image_url ? (
-          <img 
-            src={product.image_url} 
+          <img
+            src={product.image_url}
             alt={product.name}
             className="w-full h-full object-cover"
           />
@@ -83,7 +92,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             <FlaskConical className="w-10 h-10 sm:w-14 sm:h-14 md:w-20 md:h-20 text-gray-400" />
           </div>
         )}
-        
+
         {/* Badges */}
         <div className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 md:top-3 md:left-3 flex flex-col gap-0.5 sm:gap-1 md:gap-2">
           {product.featured && (
@@ -111,7 +120,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         <div className="absolute bottom-1 sm:bottom-1.5 md:bottom-2 left-1/2 transform -translate-x-1/2 pointer-events-none">
           <div className="bg-white/95 backdrop-blur-md px-2 py-1 sm:px-2.5 sm:py-1 md:px-3 md:py-1.5 rounded-full shadow-md sm:shadow-lg border border-gold-300 animate-pulse-subtle">
             <p className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-semibold text-black flex items-center gap-0.5 sm:gap-1 whitespace-nowrap">
-              <span className="text-[10px] sm:text-xs">👆</span> 
+              <span className="text-[10px] sm:text-xs">👆</span>
               <span className="hidden xs:inline">Tap for details</span>
               <span className="xs:hidden">Tap</span>
             </p>
@@ -151,43 +160,48 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 Size:
               </label>
               <div className="grid grid-cols-3 gap-1 md:gap-2 max-h-[60px] overflow-y-auto scrollbar-thin">
-              {product.variations.slice(0, 3).map((variation) => {
-                const isOutOfStock = variation.stock_quantity === 0;
-                return (
-                  <button
-                    key={variation.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isOutOfStock) {
-                        setSelectedVariation(variation);
-                      }
-                    }}
-                    disabled={isOutOfStock}
-                    className={`
+                {product.variations.slice(0, 3).map((variation) => {
+                  const isOutOfStock = variation.stock_quantity === 0;
+                  return (
+                    <button
+                      key={variation.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isOutOfStock) {
+                          setSelectedVariation(variation);
+                        }
+                      }}
+                      disabled={isOutOfStock}
+                      className={`
                       px-1 py-0.5 sm:px-1.5 sm:py-1 md:px-2 md:py-1.5 rounded md:rounded-lg text-[9px] sm:text-[10px] md:text-xs font-medium transition-all relative z-20
                       ${selectedVariation?.id === variation.id && !isOutOfStock
-                        ? 'bg-black text-white shadow-md border border-gold-500/30'
-                        : isOutOfStock
-                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-200 border-dashed opacity-60'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-black border border-gray-300'
-                      }
+                          ? 'bg-black text-white shadow-md border border-gold-500/30'
+                          : isOutOfStock
+                            ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-200 border-dashed opacity-60'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-black border border-gray-300'
+                        }
                     `}
-                  >
-                    <div className={`truncate ${isOutOfStock ? 'line-through' : ''}`}>
-                      {variation.name}
-                    </div>
-                    {isOutOfStock ? (
-                      <div className="text-[7px] sm:text-[8px] md:text-[9px] mt-0.5 text-red-500 font-semibold">
-                        Out of Stock
+                    >
+                      <div className={`truncate ${isOutOfStock ? 'line-through' : ''}`}>
+                        {variation.name}
                       </div>
-                    ) : (
-                      <div className="text-[8px] sm:text-[9px] md:text-[10px] mt-0.5">
-                        ₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                      {isOutOfStock ? (
+                        <div className="text-[7px] sm:text-[8px] md:text-[9px] mt-0.5 text-red-500 font-semibold">
+                          Out of Stock
+                        </div>
+                      ) : variation.discount_price !== null && variation.discount_price !== undefined ? (
+                        <div className="text-[8px] sm:text-[9px] md:text-[10px] mt-0.5">
+                          <span className="text-gray-400 line-through mr-0.5">₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
+                          <span className="text-green-600 font-bold">₱{variation.discount_price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
+                        </div>
+                      ) : (
+                        <div className="text-[8px] sm:text-[9px] md:text-[10px] mt-0.5">
+                          ₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
               {product.variations.length > 3 && (
                 <p className="text-[8px] sm:text-[9px] md:text-[10px] text-gold-600 mt-0.5 sm:mt-1 font-medium">
@@ -208,7 +222,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           </span>
           {hasDiscount && (
             <span className="ml-1 md:ml-2 text-xs sm:text-sm md:text-base lg:text-lg text-gray-400 line-through">
-              ₱{product.base_price.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              ₱{originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           )}
         </div>

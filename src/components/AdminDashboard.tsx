@@ -515,13 +515,39 @@ const AdminDashboard: React.FC = () => {
                       className="input-field text-sm"
                       placeholder="0"
                     />
-                    {editingProduct && editingProduct.variations && editingProduct.variations.length > 0 && (
-                      <p className="text-xs text-orange-600 mt-2 flex items-start gap-1.5 bg-orange-50 p-2 rounded border border-orange-200">
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Discount Price (₱) 💰</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="1"
+                        value={formData.discount_price || ''}
+                        onChange={(e) => setFormData({ ...formData, discount_price: Number(e.target.value) || null })}
+                        className="input-field text-sm flex-1"
+                        placeholder="0"
+                      />
+                      <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={formData.discount_active || false}
+                          onChange={(e) => setFormData({ ...formData, discount_active: e.target.checked })}
+                          className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                        />
+                        <span className="text-xs font-semibold text-gray-700">🏷️ Active</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {editingProduct && editingProduct.variations && editingProduct.variations.length > 0 && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-orange-600 flex items-start gap-1.5 bg-orange-50 p-2 rounded border border-orange-200">
                         <span className="text-base">⚠️</span>
                         <span>This product has <strong>{editingProduct.variations.length} size variation(s)</strong>. Customers will see those prices instead of this base price. Use the <strong>"Manage Sizes"</strong> button to update the prices shown on the website.</span>
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -689,38 +715,6 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Discount */}
-              <div>
-                <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-1.5">
-                  <span className="text-base md:text-lg">💰</span>
-                  Discount Pricing
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Discount Price (₱)</label>
-                    <input
-                      type="number"
-                      step="1"
-                      value={formData.discount_price || ''}
-                      onChange={(e) => setFormData({ ...formData, discount_price: Number(e.target.value) || null })}
-                      className="input-field text-sm"
-                      placeholder="0"
-                    />
-                  </div>
-
-                  <div className="flex items-center pt-0 md:pt-6">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.discount_active || false}
-                        onChange={(e) => setFormData({ ...formData, discount_active: e.target.checked })}
-                        className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
-                      />
-                      <span className="text-xs font-semibold text-gray-700">🏷️ Enable Discount</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
 
               {/* Product Image */}
               <div>
