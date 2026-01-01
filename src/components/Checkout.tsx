@@ -11,6 +11,22 @@ interface CheckoutProps {
   onBack: () => void;
 }
 
+// Helper function to get current price for a cart item (respects current discounts)
+const getCurrentItemPrice = (item: CartItem): number => {
+  if (item.variation) {
+    // Check for variation-level discount first
+    if (item.variation.discount_price !== null && item.variation.discount_price !== undefined) {
+      return item.variation.discount_price;
+    }
+    return item.variation.price;
+  }
+  // Fall back to product-level pricing
+  if (item.product.discount_active && item.product.discount_price) {
+    return item.product.discount_price;
+  }
+  return item.product.base_price;
+};
+
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { paymentMethods } = usePaymentMethods();
   const { validateVoucher } = useVouchers();
@@ -140,17 +156,20 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
 
     try {
-      // Prepare order items for database
-      const orderItems = cartItems.map(item => ({
-        product_id: item.product.id,
-        product_name: item.product.name,
-        variation_id: item.variation?.id || null,
-        variation_name: item.variation?.name || null,
-        quantity: item.quantity,
-        price: item.price,
-        total: item.price * item.quantity,
-        purity_percentage: item.product.purity_percentage
-      }));
+      // Prepare order items for database - use current discount prices
+      const orderItems = cartItems.map(item => {
+        const currentPrice = getCurrentItemPrice(item);
+        return {
+          product_id: item.product.id,
+          product_name: item.product.name,
+          variation_id: item.variation?.id || null,
+          variation_name: item.variation?.name || null,
+          quantity: item.quantity,
+          price: currentPrice,
+          total: currentPrice * item.quantity,
+          purity_percentage: item.product.purity_percentage
+        };
+      });
 
       // Save order to database
       const { data: orderData, error: orderError } = await supabase
@@ -227,11 +246,12 @@ ${city}, ${state} ${zipCode}
 
 🛒 ORDER DETAILS
 ${cartItems.map(item => {
+        const currentPrice = getCurrentItemPrice(item);
         let line = `• ${item.product.name}`;
         if (item.variation) {
           line += ` (${item.variation.name})`;
         }
-        line += ` x${item.quantity} - ₱${(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
+        line += ` x${item.quantity} - ₱${(currentPrice * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
         line += `\n  Purity: ${item.product.purity_percentage}%`;
         return line;
       }).join('\n\n')}
@@ -670,7 +690,7 @@ Please confirm this order. Thank you!
                           </p>
                         </div>
                         <span className="font-semibold text-gray-900 text-sm">
-                          ₱{(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                          ₱{(getCurrentItemPrice(item) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">Qty: {item.quantity}</p>

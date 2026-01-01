@@ -12,6 +12,22 @@ interface CartProps {
   onCheckout: () => void;
 }
 
+// Helper function to get the current price for a cart item (respects discounts)
+const getCurrentItemPrice = (item: CartItem): number => {
+  if (item.variation) {
+    // Check for variation-level discount first
+    if (item.variation.discount_price !== null && item.variation.discount_price !== undefined) {
+      return item.variation.discount_price;
+    }
+    return item.variation.price;
+  }
+  // Fall back to product-level pricing
+  if (item.product.discount_active && item.product.discount_price) {
+    return item.product.discount_price;
+  }
+  return item.product.base_price;
+};
+
 const Cart: React.FC<CartProps> = ({
   cartItems,
   updateQuantity,
@@ -49,7 +65,10 @@ const Cart: React.FC<CartProps> = ({
     );
   }
 
-  const totalPrice = getTotalPrice();
+  // Calculate total price using current discount prices
+  const totalPrice = cartItems.reduce((total, item) => {
+    return total + (getCurrentItemPrice(item) * item.quantity);
+  }, 0);
   // Shipping fee will be discussed via chat
   const finalTotal = totalPrice;
 
@@ -86,7 +105,7 @@ const Cart: React.FC<CartProps> = ({
             {cartItems.map((item, index) => (
               <div
                 key={index}
-                  className="bg-white backdrop-blur-sm rounded-lg shadow-lg hover:shadow-xl p-4 md:p-6 transition-all animate-fadeIn border border-gray-200 hover:border-gold-300"
+                className="bg-white backdrop-blur-sm rounded-lg shadow-lg hover:shadow-xl p-4 md:p-6 transition-all animate-fadeIn border border-gray-200 hover:border-gold-300"
               >
                 <div className="flex gap-4 md:gap-6">
                   {/* Product Image */}
@@ -171,10 +190,10 @@ const Cart: React.FC<CartProps> = ({
 
                       <div className="text-right">
                         <div className="text-xl md:text-2xl font-bold text-black">
-                          ₱{(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                          ₱{(getCurrentItemPrice(item) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                         </div>
                         <div className="text-[10px] md:text-xs text-gray-500">
-                          ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })} each
+                          ₱{getCurrentItemPrice(item).toLocaleString('en-PH', { minimumFractionDigits: 0 })} each
                         </div>
                       </div>
                     </div>

@@ -138,30 +138,31 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       </div>
 
       {/* Product Details */}
-      <div className="p-2 sm:p-3 md:p-4 lg:p-5 flex-1 flex flex-col">
-        <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-0.5 sm:mb-1 md:mb-2 leading-tight line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] md:min-h-[3rem]">{product.name}</h3>
-        <p className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm text-gray-600 mb-1.5 sm:mb-2 md:mb-3 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">{product.description}</p>
+      <div className="p-2.5 sm:p-3 md:p-4 lg:p-5 flex-1 flex flex-col">
+        <h3 className="text-[11px] sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 sm:mb-1.5 md:mb-2 leading-tight line-clamp-2 min-h-[2.25rem] sm:min-h-[2.5rem] md:min-h-[3rem]">{product.name}</h3>
+        <p className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm text-gray-600 mb-2 sm:mb-2.5 md:mb-3 line-clamp-2 leading-relaxed min-h-[2.25rem] sm:min-h-[2.5rem]">{product.description}</p>
 
         {/* Compact Info Badge - Fixed Height */}
-        <div className="mb-1.5 sm:mb-2 md:mb-3 min-h-[20px] sm:min-h-[24px] md:min-h-[28px] flex items-start">
+        <div className="mb-2 sm:mb-2.5 md:mb-3 min-h-[22px] sm:min-h-[26px] md:min-h-[28px] flex items-start">
           {product.inclusions && product.inclusions.length > 0 && (
-            <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-gradient-to-r from-gold-100 to-gold-200 text-gold-900 rounded-full text-[9px] sm:text-[10px] md:text-xs font-bold border border-gold-300">
+            <span className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-2.5 md:px-3 py-0.5 sm:py-1 bg-gradient-to-r from-gold-100 to-gold-200 text-gold-900 rounded-full text-[9px] sm:text-[10px] md:text-xs font-bold border border-gold-300">
               📦 Set ({product.inclusions.length})
             </span>
           )}
         </div>
 
         {/* Variations (Sizes) - Fixed Height */}
-        <div className="mb-1.5 sm:mb-2 md:mb-3 lg:mb-4 min-h-[65px] sm:min-h-[75px] md:min-h-[90px]">
+        <div className="mb-1.5 sm:mb-2 md:mb-3 lg:mb-4 min-h-[70px] sm:min-h-[80px] md:min-h-[90px]">
           {product.variations && product.variations.length > 0 && (
             <>
               <label className="block text-[10px] sm:text-[11px] md:text-sm font-medium text-gray-700 mb-1 sm:mb-1.5 md:mb-2">
                 <Package className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 inline mr-0.5" />
                 Size:
               </label>
-              <div className="grid grid-cols-3 gap-1 md:gap-2 max-h-[60px] overflow-y-auto scrollbar-thin">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-2">
                 {product.variations.slice(0, 3).map((variation) => {
                   const isOutOfStock = variation.stock_quantity === 0;
+                  const hasVariationDiscount = variation.discount_price !== null && variation.discount_price !== undefined;
                   return (
                     <button
                       key={variation.id}
@@ -173,7 +174,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       }}
                       disabled={isOutOfStock}
                       className={`
-                      px-1 py-0.5 sm:px-1.5 sm:py-1 md:px-2 md:py-1.5 rounded md:rounded-lg text-[9px] sm:text-[10px] md:text-xs font-medium transition-all relative z-20
+                      px-1.5 py-1 sm:px-2 sm:py-1.5 md:px-2.5 md:py-2 rounded-md md:rounded-lg text-[10px] sm:text-[11px] md:text-xs font-medium transition-all relative z-20 flex flex-col items-center justify-center text-center min-h-[44px] sm:min-h-[48px] md:min-h-[52px]
                       ${selectedVariation?.id === variation.id && !isOutOfStock
                           ? 'bg-black text-white shadow-md border border-gold-500/30'
                           : isOutOfStock
@@ -182,20 +183,20 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                         }
                     `}
                     >
-                      <div className={`truncate ${isOutOfStock ? 'line-through' : ''}`}>
+                      <div className={`font-semibold ${isOutOfStock ? 'line-through' : ''}`}>
                         {variation.name}
                       </div>
                       {isOutOfStock ? (
-                        <div className="text-[7px] sm:text-[8px] md:text-[9px] mt-0.5 text-red-500 font-semibold">
+                        <div className="text-[8px] sm:text-[9px] md:text-[10px] text-red-500 font-semibold">
                           Out of Stock
                         </div>
-                      ) : variation.discount_price !== null && variation.discount_price !== undefined ? (
-                        <div className="text-[8px] sm:text-[9px] md:text-[10px] mt-0.5">
-                          <span className="text-gray-400 line-through mr-0.5">₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
-                          <span className="text-green-600 font-bold">₱{variation.discount_price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
+                      ) : hasVariationDiscount ? (
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="text-[8px] sm:text-[9px] text-gray-400 line-through">₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
+                          <span className="text-[9px] sm:text-[10px] md:text-[11px] text-green-600 font-bold">₱{variation.discount_price!.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</span>
                         </div>
                       ) : (
-                        <div className="text-[8px] sm:text-[9px] md:text-[10px] mt-0.5">
+                        <div className="text-[9px] sm:text-[10px] md:text-[11px]">
                           ₱{variation.price.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                         </div>
                       )}
@@ -204,8 +205,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 })}
               </div>
               {product.variations.length > 3 && (
-                <p className="text-[8px] sm:text-[9px] md:text-[10px] text-gold-600 mt-0.5 sm:mt-1 font-medium">
-                  +{product.variations.length - 3} more
+                <p className="text-[8px] sm:text-[9px] md:text-[10px] text-gold-600 mt-1 font-medium">
+                  +{product.variations.length - 3} more sizes
                 </p>
               )}
             </>
@@ -216,33 +217,33 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         <div className="flex-1"></div>
 
         {/* Price - Fixed at bottom */}
-        <div className="flex items-baseline mb-1.5 sm:mb-2 md:mb-3">
-          <span className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-black">
+        <div className="flex items-baseline gap-1.5 mb-2 sm:mb-2.5 md:mb-3">
+          <span className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-black">
             ₱{currentPrice.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </span>
           {hasDiscount && (
-            <span className="ml-1 md:ml-2 text-xs sm:text-sm md:text-base lg:text-lg text-gray-400 line-through">
+            <span className="text-[10px] sm:text-sm md:text-base lg:text-lg text-gray-400 line-through">
               ₱{originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           )}
         </div>
 
         {/* Quantity Controls - Sticky at bottom */}
-        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 relative z-20">
-          <div className="flex items-center border border-gray-200 sm:border-2 rounded sm:rounded-md md:rounded-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 relative z-20">
+          <div className="flex items-center border border-gray-300 rounded-md sm:rounded-lg bg-white shadow-sm">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 decrementQuantity();
               }}
-              className="p-0.5 sm:p-1 md:p-1.5 lg:p-2 hover:bg-gray-100 transition-colors"
+              className="p-1.5 sm:p-2 md:p-2.5 lg:p-3 hover:bg-gray-100 transition-colors rounded-l-md"
             >
-              <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-gray-600" />
+              <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-600" />
             </button>
-            <span className="px-1.5 sm:px-2 md:px-3 lg:px-4 py-0.5 sm:py-1 md:py-1.5 lg:py-2 font-semibold text-gray-800 min-w-[20px] sm:min-w-[24px] md:min-w-[36px] text-center text-[10px] sm:text-xs md:text-sm lg:text-base">
+            <span className="px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 font-semibold text-gray-800 min-w-[28px] sm:min-w-[36px] md:min-w-[44px] text-center text-[11px] sm:text-xs md:text-sm lg:text-base">
               {quantity}
               {availableStock > 0 && (
-                <span className="block text-[8px] sm:text-[9px] md:text-[10px] text-gray-500">/ {availableStock}</span>
+                <span className="block text-[8px] sm:text-[9px] md:text-[10px] text-gray-400">/ {availableStock}</span>
               )}
             </span>
             <button
@@ -251,9 +252,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 incrementQuantity();
               }}
               disabled={quantity >= availableStock}
-              className="p-0.5 sm:p-1 md:p-1.5 lg:p-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 sm:p-2 md:p-2.5 lg:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-md"
             >
-              <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-gray-600" />
+              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-600" />
             </button>
           </div>
 
@@ -269,11 +270,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               handleAddToCart();
             }}
             disabled={!hasAnyStock || availableStock === 0 || quantity === 0}
-            className="flex-1 bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white px-1.5 py-1 sm:px-2 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 rounded sm:rounded-md md:rounded-lg font-semibold transition-all duration-200 active:scale-95 shadow-md hover:shadow-gold-glow disabled:opacity-50 disabled:cursor-not-allowed text-[10px] sm:text-[11px] md:text-sm lg:text-base border border-gold-500/20"
+            className="flex-1 bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white px-2 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3 lg:px-6 lg:py-3.5 rounded-md sm:rounded-lg font-semibold transition-all duration-200 active:scale-95 shadow-md hover:shadow-gold-glow disabled:opacity-50 disabled:cursor-not-allowed text-[11px] sm:text-xs md:text-sm lg:text-base border border-gold-500/20 flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2"
           >
-            <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 inline mr-0.5 sm:mr-1 md:mr-2" />
-            <span className="hidden sm:inline">Add to Cart</span>
-            <span className="sm:hidden">Add</span>
+            <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-5 lg:h-5" />
+            <span>Add</span>
           </button>
         </div>
 
