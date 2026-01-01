@@ -27,6 +27,22 @@ const getCurrentItemPrice = (item: CartItem): number => {
   return item.product.base_price;
 };
 
+// Helper function to get original price for a cart item (before any discounts)
+const getOriginalItemPrice = (item: CartItem): number => {
+  if (item.variation) {
+    return item.variation.price;
+  }
+  return item.product.base_price;
+};
+
+// Helper function to check if an item has a discount
+const isItemDiscounted = (item: CartItem): boolean => {
+  if (item.variation) {
+    return item.variation.discount_price !== null && item.variation.discount_price !== undefined;
+  }
+  return item.product.discount_active && item.product.discount_price !== null;
+};
+
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { paymentMethods } = usePaymentMethods();
   const { validateVoucher } = useVouchers();
@@ -677,25 +693,44 @@ Please confirm this order. Thank you!
                 </h2>
 
                 <div className="space-y-4 mb-6">
-                  {cartItems.map((item, index) => (
-                    <div key={index} className="pb-4 border-b border-gray-200">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 text-sm">{item.product.name}</h4>
-                          {item.variation && (
-                            <p className="text-xs text-gold-600 mt-1">{item.variation.name}</p>
-                          )}
-                          <p className="text-xs text-gray-500 mt-1">
-                            {item.product.purity_percentage}% Purity
-                          </p>
+                  {cartItems.map((item, index) => {
+                    const currentPrice = getCurrentItemPrice(item);
+                    const originalPrice = getOriginalItemPrice(item);
+                    const hasDiscount = isItemDiscounted(item);
+                    const savings = hasDiscount ? (originalPrice - currentPrice) * item.quantity : 0;
+
+                    return (
+                      <div key={index} className="pb-4 border-b border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-sm">{item.product.name}</h4>
+                            {item.variation && (
+                              <p className="text-xs text-gold-600 mt-1">{item.variation.name}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {item.product.purity_percentage}% Purity
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-semibold text-gray-900 text-sm">
+                              ₱{(currentPrice * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                            </span>
+                            {hasDiscount && (
+                              <>
+                                <p className="text-xs text-gray-400 line-through">
+                                  ₱{(originalPrice * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                </p>
+                                <p className="text-xs text-green-600 font-medium">
+                                  Save ₱{savings.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                </p>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <span className="font-semibold text-gray-900 text-sm">
-                          ₱{(getCurrentItemPrice(item) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-                        </span>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                       </div>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="space-y-3 mb-6">

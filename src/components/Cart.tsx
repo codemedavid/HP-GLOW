@@ -28,6 +28,22 @@ const getCurrentItemPrice = (item: CartItem): number => {
   return item.product.base_price;
 };
 
+// Helper function to get original price for a cart item (before any discounts)
+const getOriginalItemPrice = (item: CartItem): number => {
+  if (item.variation) {
+    return item.variation.price;
+  }
+  return item.product.base_price;
+};
+
+// Helper function to check if an item has a discount
+const isItemDiscounted = (item: CartItem): boolean => {
+  if (item.variation) {
+    return item.variation.discount_price !== null && item.variation.discount_price !== undefined;
+  }
+  return item.product.discount_active && item.product.discount_price !== null;
+};
+
 const Cart: React.FC<CartProps> = ({
   cartItems,
   updateQuantity,
@@ -192,9 +208,21 @@ const Cart: React.FC<CartProps> = ({
                         <div className="text-xl md:text-2xl font-bold text-black">
                           ₱{(getCurrentItemPrice(item) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                         </div>
-                        <div className="text-[10px] md:text-xs text-gray-500">
-                          ₱{getCurrentItemPrice(item).toLocaleString('en-PH', { minimumFractionDigits: 0 })} each
-                        </div>
+                        {isItemDiscounted(item) && (
+                          <>
+                            <div className="text-[10px] md:text-xs text-gray-400 line-through">
+                              ₱{(getOriginalItemPrice(item) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                            </div>
+                            <div className="text-[10px] md:text-xs text-green-600 font-medium">
+                              Save ₱{((getOriginalItemPrice(item) - getCurrentItemPrice(item)) * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                            </div>
+                          </>
+                        )}
+                        {!isItemDiscounted(item) && (
+                          <div className="text-[10px] md:text-xs text-gray-500">
+                            ₱{getCurrentItemPrice(item).toLocaleString('en-PH', { minimumFractionDigits: 0 })} each
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
