@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { MessageCircle, Shield, Heart, Sparkles, Instagram, Phone } from 'lucide-react';
+import { MessageCircle, Shield, Heart, Sparkles, Instagram } from 'lucide-react';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
 
 const Footer: React.FC = () => {
@@ -10,7 +11,7 @@ const Footer: React.FC = () => {
   const messengerMessage = encodeURIComponent('Hi! I would like to inquire about your products.');
   const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
-  const viberUrl = 'viber://chat?number=%2B639062349763';
+
 
   return (
     <footer className="bg-gradient-to-r from-black to-gray-900 text-white border-t border-gold-500/20">
@@ -62,15 +63,7 @@ const Footer: React.FC = () => {
               <Instagram className="w-3 h-3 md:w-4 md:h-4" />
               <span className="hidden sm:inline">Instagram</span>
             </a>
-            <a
-              href={viberUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg transition-all font-medium text-xs md:text-sm shadow-md hover:shadow-lg transform hover:scale-105"
-            >
-              <Phone className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Viber</span>
-            </a>
+
             <a
               href={messengerUrl}
               target="_blank"

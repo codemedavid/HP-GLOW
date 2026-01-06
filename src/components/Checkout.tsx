@@ -63,7 +63,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   // Payment
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [contactMethod, setContactMethod] = useState<'instagram' | 'viber' | ''>('');
+  const [contactMethod, setContactMethod] = useState<'instagram'>('instagram');
   const [notes, setNotes] = useState('');
 
   // Voucher
@@ -76,7 +76,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   // Order message for copying
   const [orderMessage, setOrderMessage] = useState<string>('');
   const [copied, setCopied] = useState(false);
-  const [contactOpened, setContactOpened] = useState(false);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -285,7 +284,7 @@ ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
 Please attach your payment screenshot when sending this message.
 
 📱 CONTACT METHOD
-${contactMethod === 'instagram' ? 'Instagram: https://www.instagram.com/hpglowpeptides' : contactMethod === 'viber' ? 'Viber: 09062349763' : 'Not selected'}
+${'Instagram: https://www.instagram.com/hpglowpeptides'}
 
 📋 ORDER ID: ${orderData.id}
 
@@ -294,34 +293,6 @@ Please confirm this order. Thank you!
 
       // Store order message for copying
       setOrderMessage(orderDetails);
-
-      // Open contact method based on selection
-      const contactUrl = contactMethod === 'instagram'
-        ? 'https://www.instagram.com/hpglowpeptides'
-        : contactMethod === 'viber'
-          ? 'viber://chat?number=%2B639062349763'
-          : null;
-
-      if (contactUrl) {
-        try {
-          const contactWindow = window.open(contactUrl, '_blank');
-
-          if (!contactWindow || contactWindow.closed || typeof contactWindow.closed === 'undefined') {
-            console.warn('⚠️ Popup blocked or contact method failed to open');
-            setContactOpened(false);
-          } else {
-            setContactOpened(true);
-            setTimeout(() => {
-              if (contactWindow.closed) {
-                setContactOpened(false);
-              }
-            }, 1000);
-          }
-        } catch (error) {
-          console.error('❌ Error opening contact method:', error);
-          setContactOpened(false);
-        }
-      }
 
       // Show confirmation
       setStep('confirmation');
@@ -357,14 +328,10 @@ Please confirm this order. Thank you!
   };
 
   const handleOpenContact = () => {
-    const contactUrl = contactMethod === 'instagram'
-      ? 'https://www.instagram.com/hpglowpeptides'
-      : contactMethod === 'viber'
-        ? 'viber://chat?number=%2B639062349763'
-        : null;
+    const contactUrl = 'https://www.instagram.com/hpglowpeptides';
 
     if (contactUrl) {
-      window.open(contactUrl, '_blank');
+      window.location.href = contactUrl;
     }
   };
 
@@ -381,7 +348,7 @@ Please confirm this order. Thank you!
               <Sparkles className="w-7 h-7 text-gold-600" />
             </h1>
             <p className="text-gray-600 mb-8 text-base md:text-lg leading-relaxed">
-              Copy the order message below and send it to your preferred platform (IG/viber) along with your payment screenshot.
+              Copy the order message below and send it to our Instagram along with your payment screenshot.
             </p>
 
             {/* Order Message Display */}
@@ -416,7 +383,7 @@ Please confirm this order. Thank you!
               {copied && (
                 <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
                   <Check className="w-4 h-4" />
-                  Message copied to clipboard! Paste it in {contactMethod === 'instagram' ? 'Instagram' : 'Viber'} along with your payment screenshot.
+                  Message copied to clipboard! Paste it in Instagram along with your payment screenshot.
                 </p>
               )}
             </div>
@@ -424,18 +391,17 @@ Please confirm this order. Thank you!
             {/* Action Buttons */}
             <div className="space-y-3 mb-8">
               <button
+                type="button"
                 onClick={handleOpenContact}
-                className="w-full bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center justify-center gap-2 border border-gold-500/20"
+                className="w-full bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center justify-center gap-2 border border-gold-500/20 cursor-pointer"
               >
-                {contactMethod === 'instagram' ? <Instagram className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
-                Open {contactMethod === 'instagram' ? 'Instagram' : 'Viber'}
+                <Instagram className="w-5 h-5" />
+                Open Instagram
               </button>
 
-              {!contactOpened && (
-                <p className="text-sm text-gray-600">
-                  💡 If {contactMethod === 'instagram' ? 'Instagram' : 'Viber'} doesn't open, copy the message above and paste it manually
-                </p>
-              )}
+              <p className="text-sm text-gray-600">
+                💡 If Instagram doesn't open, copy the message above and paste it manually
+              </p>
             </div>
 
             <div className="bg-gradient-to-r from-gold-50 to-gold-100/50 rounded-2xl p-6 mb-8 text-left border-2 border-gold-300/30">
@@ -446,7 +412,7 @@ Please confirm this order. Thank you!
               <ul className="space-y-3 text-sm md:text-base text-gray-700">
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">1️⃣</span>
-                  <span>Send your order details and payment screenshot — we'll confirm within 24 hours or less.</span>
+                  <span>Send your order details and payment screenshot via Instagram — we'll confirm within 24 hours or less.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">2️⃣</span>
@@ -458,7 +424,7 @@ Please confirm this order. Thank you!
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">4️⃣</span>
-                  <span>Tracking numbers are sent via Viber from 11 PM onwards.</span>
+                  <span>Tracking numbers are sent via Instagram from 11 PM onwards.</span>
                 </li>
               </ul>
             </div>
@@ -984,26 +950,7 @@ Please confirm this order. Thank you!
                     </div>
                   )}
                 </button>
-                <button
-                  onClick={() => setContactMethod('viber')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${contactMethod === 'viber'
-                    ? 'border-gold-500 bg-gold-50'
-                    : 'border-gray-200 hover:border-gold-300'
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-6 h-6 text-gold-600" />
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900">Viber</p>
-                      <p className="text-sm text-gray-500">09062349763</p>
-                    </div>
-                  </div>
-                  {contactMethod === 'viber' && (
-                    <div className="w-6 h-6 bg-gold-600 rounded-full flex items-center justify-center">
-                      <span className="text-black text-xs font-bold">✓</span>
-                    </div>
-                  )}
-                </button>
+
               </div>
             </div>
 

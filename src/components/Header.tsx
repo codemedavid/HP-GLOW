@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
-import { ShoppingCart, Menu, X, MessageCircle, Sparkles, Instagram, Phone } from 'lucide-react';
+import { ShoppingCart, Menu, X, MessageCircle, Sparkles, Instagram } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const messengerMessage = encodeURIComponent('Hi! I am interested in your products.');
   const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
-  const viberUrl = 'viber://chat?number=%2B639062349763';
+
 
   return (
     <>
@@ -152,16 +152,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                     <Instagram className="w-4 h-4" />
                     Instagram
                   </a>
-                  <a
-                    href={viberUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium text-sm shadow-md"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Phone className="w-4 h-4" />
-                    Viber
-                  </a>
+
                   <a
                     href={messengerUrl}
                     target="_blank"

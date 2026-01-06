@@ -139,12 +139,7 @@ const FAQPage: React.FC = () => {
                         >
                             📸 Instagram
                         </a>
-                        <a
-                            href="viber://chat?number=%2B639062349763"
-                            className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all border border-gold-300"
-                        >
-                            💬 Viber
-                        </a>
+
                     </div>
                 </div>
             </main>
