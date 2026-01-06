@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
   const messengerMessage = encodeURIComponent('Hi! I would like to inquire about your products.');
   const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
-  const viberUrl = `tel:+639062349763`; // Opens phone/Viber on mobile devices
+  const viberUrl = 'viber://chat?number=%2B639062349763';
 
   return (
     <footer className="bg-gradient-to-r from-black to-gray-900 text-white border-t border-gold-500/20">

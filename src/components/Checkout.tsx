@@ -299,7 +299,7 @@ Please confirm this order. Thank you!
       const contactUrl = contactMethod === 'instagram'
         ? 'https://www.instagram.com/hpglowpeptides'
         : contactMethod === 'viber'
-          ? 'viber://chat?number=09062349763'
+          ? 'viber://chat?number=%2B639062349763'
           : null;
 
       if (contactUrl) {
@@ -360,7 +360,7 @@ Please confirm this order. Thank you!
     const contactUrl = contactMethod === 'instagram'
       ? 'https://www.instagram.com/hpglowpeptides'
       : contactMethod === 'viber'
-        ? 'viber://chat?number=09062349763'
+        ? 'viber://chat?number=%2B639062349763'
         : null;
 
     if (contactUrl) {

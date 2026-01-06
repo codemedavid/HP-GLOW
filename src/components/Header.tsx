@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const messengerMessage = encodeURIComponent('Hi! I am interested in your products.');
   const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
-  const viberUrl = `tel:+639062349763`; // Opens phone/Viber on mobile devices
+  const viberUrl = 'viber://chat?number=%2B639062349763';
 
   return (
     <>
@@ -24,15 +24,15 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
         <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo and Brand */}
-            <button 
+            <button
               onClick={() => { onMenuClick(); setMobileMenuOpen(false); }}
               className="flex items-center space-x-2 md:space-x-3 hover:opacity-90 transition-all group min-w-0 flex-1 max-w-[calc(100%-130px)] sm:max-w-none sm:flex-initial"
             >
               <div className="relative flex-shrink-0">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg bg-gradient-to-br from-black to-gray-900 shadow-xl flex items-center justify-center group-hover:shadow-gold-glow transition-all overflow-hidden border-2 border-gold-500/30 ring-1 ring-gold-500/20">
-                  <img 
-                    src="/logo.jpg" 
-                    alt="HP GLOW" 
+                  <img
+                    src="/logo.jpg"
+                    alt="HP GLOW"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -98,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
               </button>
 
               {/* Mobile Menu Button */}
-              <button 
+              <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2.5 hover:bg-gray-100 rounded-xl transition-colors text-gray-700"
                 aria-label="Toggle menu"
@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
-          <div 
+          <div
             className="absolute top-[66px] sm:top-[72px] right-0 left-0 bg-white shadow-2xl rounded-b-lg animate-slideIn border-t border-gold-300/30"
             onClick={(e) => e.stopPropagation()}
           >
