@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Instagram, Phone, Tag, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Instagram, Phone, Tag, X, Upload, Image as ImageIcon } from 'lucide-react';
 import type { CartItem, Voucher } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useVouchers } from '../hooks/useVouchers';
+import { useImageUpload } from '../hooks/useImageUpload';
 import { supabase } from '../lib/supabase';
 
 interface CheckoutProps {
@@ -72,6 +73,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherError, setVoucherError] = useState('');
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+
+  // Payment Proof Upload
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadImage, uploading, uploadProgress } = useImageUpload('payment-proofs');
 
   // Order message for copying
   const [orderMessage, setOrderMessage] = useState<string>('');
@@ -204,7 +210,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
           shipping_location: shippingLocation,
           payment_method_id: paymentMethod?.id || null,
           payment_method_name: paymentMethod?.name || null,
-          payment_proof_url: null,
+          payment_proof_url: paymentProofUrl,
           contact_method: contactMethod || null,
           notes: notes.trim() || null,
           order_status: 'new',
@@ -281,7 +287,7 @@ ${paymentMethod?.name || 'N/A'}
 ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
 
 📸 PROOF OF PAYMENT
-Please attach your payment screenshot when sending this message.
+Payment screenshot has been uploaded with this order.
 
 📱 CONTACT METHOD
 ${'Instagram: https://www.instagram.com/hpglowpeptides'}
@@ -344,11 +350,11 @@ Please confirm this order. Thank you!
               <ShieldCheck className="w-14 h-14 text-black" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2 flex-wrap">
-              <span className="bg-gradient-to-r from-black to-gray-900 bg-clip-text text-transparent">COMPLETE YOUR ORDER</span>
+              <span className="bg-gradient-to-r from-black to-gray-900 bg-clip-text text-transparent">ORDER PLACED!</span>
               <Sparkles className="w-7 h-7 text-gold-600" />
             </h1>
             <p className="text-gray-600 mb-8 text-base md:text-lg leading-relaxed">
-              Copy the order message below and send it to our Instagram along with your payment screenshot.
+              Your order and payment screenshot have been submitted! Copy the order message below and send it to our Instagram for confirmation.
             </p>
 
             {/* Order Message Display */}
@@ -383,7 +389,7 @@ Please confirm this order. Thank you!
               {copied && (
                 <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
                   <Check className="w-4 h-4" />
-                  Message copied to clipboard! Paste it in Instagram along with your payment screenshot.
+                  Message copied! Paste it in Instagram for order confirmation.
                 </p>
               )}
             </div>
@@ -412,7 +418,7 @@ Please confirm this order. Thank you!
               <ul className="space-y-3 text-sm md:text-base text-gray-700">
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">1️⃣</span>
-                  <span>Send your order details and payment screenshot via Instagram — we'll confirm within 24 hours or less.</span>
+                  <span>Your payment screenshot has been received! Send your order details via Instagram — we'll confirm within 24 hours or less.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">2️⃣</span>
@@ -971,16 +977,105 @@ Please confirm this order. Thank you!
               />
             </div>
 
+            {/* Payment Proof Upload - REQUIRED */}
+            <div className="bg-white rounded-2xl shadow-lg p-5 md:p-6 border-2 border-gold-300/30">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
+                <div className="bg-gradient-to-br from-gold-500 to-gold-600 p-2 rounded-xl">
+                  <Upload className="w-5 h-5 md:w-6 md:h-6 text-black" />
+                </div>
+                Payment Screenshot *
+              </h2>
+              <p className="text-xs md:text-sm text-gray-600 mb-4">
+                Please upload a screenshot of your payment to complete your order. This is required for verification.
+              </p>
+
+              {paymentProofUrl ? (
+                <div className="relative">
+                  <img
+                    src={paymentProofUrl}
+                    alt="Payment Proof"
+                    className="w-full max-w-md object-contain rounded-2xl border-2 border-gold-200 shadow-lg"
+                    loading="lazy"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPaymentProofUrl(null)}
+                    className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all"
+                    disabled={uploading}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  <p className="text-sm text-green-600 mt-3 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    Payment screenshot uploaded successfully!
+                  </p>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gold-300 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center cursor-pointer hover:border-gold-400 hover:bg-gold-50/50 transition-all duration-300 bg-gradient-to-br from-gold-50/30 to-yellow-50/30"
+                >
+                  {uploading ? (
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-600 mx-auto mb-2"></div>
+                      <p className="text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+                      <div className="w-32 bg-gray-200 rounded-full h-2 mt-2">
+                        <div
+                          className="bg-gold-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-16 w-16 text-gold-400 mb-4" />
+                      <p className="text-lg font-medium text-gray-700 mb-2">Upload Payment Screenshot</p>
+                      <p className="text-sm text-gray-500 mb-1">Click to select or take a photo</p>
+                      <p className="text-xs text-gray-400">JPG, PNG, or any image format - max 10MB</p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const imageUrl = await uploadImage(file);
+                    setPaymentProofUrl(imageUrl);
+                  } catch (error) {
+                    alert(error instanceof Error ? error.message : 'Failed to upload image');
+                  }
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+                className="hidden"
+                disabled={uploading}
+              />
+
+              {!paymentProofUrl && (
+                <p className="text-xs text-red-500 mt-3 flex items-center gap-1">
+                  ⚠️ Payment screenshot is required to complete your order
+                </p>
+              )}
+            </div>
+
             <button
               onClick={handlePlaceOrder}
-              disabled={!contactMethod || !shippingLocation}
-              className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg transition-all flex items-center justify-center gap-2 ${contactMethod && shippingLocation
+              disabled={!contactMethod || !shippingLocation || !paymentProofUrl || uploading}
+              className={`w-full py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg transition-all flex items-center justify-center gap-2 ${contactMethod && shippingLocation && paymentProofUrl && !uploading
                 ? 'bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white hover:shadow-xl transform hover:scale-105 border border-gold-500/20'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
             >
               <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
-              Complete Order
+              {!paymentProofUrl ? 'Upload Payment Screenshot to Complete Order' : 'Complete Order'}
             </button>
           </div>
 
