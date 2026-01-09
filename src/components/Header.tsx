@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
-import { ShoppingCart, Menu, X, MessageCircle, Sparkles, Instagram } from 'lucide-react';
+import { ShoppingCart, Menu, X, MessageCircle, Sparkles, Instagram, HelpCircle } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -141,6 +141,14 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                     📋 Lab Reports
                   </a>
                 )}
+                <a
+                  href="/faq"
+                  className="text-left px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium text-sm border border-transparent hover:border-gold-300 flex items-center gap-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  FAQ
+                </a>
                 <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
                   <a
                     href={instagramUrl}
