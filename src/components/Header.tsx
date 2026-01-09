@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
-import { ShoppingCart, Menu, X, MessageCircle, Sparkles, Instagram, HelpCircle } from 'lucide-react';
+import { ShoppingCart, Menu, X, Sparkles, Instagram, HelpCircle } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -13,8 +13,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const { coaPageEnabled } = useCOAPageSetting();
 
   // Contact Links
-  const messengerMessage = encodeURIComponent('Hi! I am interested in your products.');
-  const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
+  // Contact Links
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
 
 
@@ -72,15 +71,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                     Lab Reports
                   </a>
                 )}
-                <a
-                  href={messengerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 lg:gap-2 bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg transition-all font-semibold text-sm lg:text-base shadow-md hover:shadow-gold-glow transform hover:scale-105 border border-gold-500/20"
-                >
-                  <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
-                  Messenger
-                </a>
+
               </nav>
 
               {/* Cart Button */}
@@ -161,16 +152,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                     Instagram
                   </a>
 
-                  <a
-                    href={messengerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-black to-gray-900 text-white rounded-lg hover:from-gray-900 hover:to-black transition-all font-semibold text-sm shadow-md border border-gold-500/20"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Chat on Messenger
-                  </a>
+
                 </div>
                 <div className="border-t border-gray-200 pt-2 mt-1">
                   <button

@@ -8,8 +8,7 @@ const Footer: React.FC = () => {
   const { coaPageEnabled } = useCOAPageSetting();
 
   // Contact Links
-  const messengerMessage = encodeURIComponent('Hi! I would like to inquire about your products.');
-  const messengerUrl = `https://m.me/renalyndv?text=${messengerMessage}`;
+  // Contact Links
   const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
 
 
@@ -64,16 +63,7 @@ const Footer: React.FC = () => {
               <span className="hidden sm:inline">Instagram</span>
             </a>
 
-            <a
-              href={messengerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-black px-4 py-2 md:px-5 md:py-2.5 rounded-lg transition-all font-semibold text-xs md:text-sm shadow-lg hover:shadow-gold-glow transform hover:scale-105"
-            >
-              <MessageCircle className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Messenger</span>
-              <span className="sm:hidden">Msg</span>
-            </a>
+
           </div>
 
         </div>
