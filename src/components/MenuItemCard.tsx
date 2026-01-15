@@ -110,7 +110,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           {product.free_shipping && (
             <span className="inline-flex items-center px-1 py-0.5 sm:px-1.5 sm:py-0.5 md:px-2.5 md:py-1 rounded-full text-[9px] sm:text-[10px] md:text-xs font-medium bg-blue-100 text-blue-800 shadow-sm sm:shadow-md border border-blue-200">
               <Truck className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 mr-0.5 md:mr-1" />
-              Free Ship
+              Free Shipping
             </span>
           )}
         </div>

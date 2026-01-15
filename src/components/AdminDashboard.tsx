@@ -725,7 +725,7 @@ const AdminDashboard: React.FC = () => {
                       />
                       <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
                         <Truck className="h-3 w-3" />
-                        Free Ship
+                        Free Shipping
                       </span>
                     </label>
                   </div>
