@@ -95,6 +95,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   // Calculate shipping fee based on location
   const calculateShippingFee = (): number => {
+    // Check if any item has free shipping
+    const hasFreeShippingItem = cartItems.some(item => item.product.free_shipping);
+    if (hasFreeShippingItem) return 0;
+
     if (!shippingLocation) return 0;
 
     switch (shippingLocation) {
@@ -713,7 +717,9 @@ Please confirm this order. Thank you!
                   <div className="flex justify-between text-gray-600 text-xs">
                     <span>Shipping</span>
                     <span className="font-medium text-gold-600">
-                      {shippingLocation ? `₱${shippingFee.toLocaleString('en-PH', { minimumFractionDigits: 0 })}` : 'Select location'}
+                      {shippingLocation
+                        ? (shippingFee === 0 ? 'Free' : `₱${shippingFee.toLocaleString('en-PH', { minimumFractionDigits: 0 })}`)
+                        : 'Select location'}
                     </span>
                   </div>
 

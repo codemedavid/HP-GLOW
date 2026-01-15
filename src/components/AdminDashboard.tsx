@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Beaker, TrendingUp, Package, Users, Lock, FolderOpen, CreditCard, Sparkles, Heart, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, Tag, HelpCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Beaker, TrendingUp, Package, Users, Lock, FolderOpen, CreditCard, Sparkles, Heart, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, Tag, HelpCircle, Truck } from 'lucide-react';
 import type { Product } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
@@ -54,7 +54,8 @@ const AdminDashboard: React.FC = () => {
     stock_quantity: 0,
     image_url: null,
     discount_active: false,
-    inclusions: null
+    inclusions: null,
+    free_shipping: false
   });
 
   const handleAddProduct = () => {
@@ -77,7 +78,8 @@ const AdminDashboard: React.FC = () => {
       stock_quantity: 0,
       image_url: null,
       discount_active: false,
-      inclusions: null
+      inclusions: null,
+      free_shipping: false
     });
   };
 
@@ -205,6 +207,7 @@ const AdminDashboard: React.FC = () => {
           'image_url',
           'safety_sheet_url',
           'inclusions',
+          'free_shipping',
         ];
 
         const dbPayload: Partial<Product> = {};
@@ -711,6 +714,19 @@ const AdminDashboard: React.FC = () => {
                         className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                       />
                       <span className="text-xs font-semibold text-gray-700">✅ Available</span>
+                    </label>
+
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.free_shipping || false}
+                        onChange={(e) => setFormData({ ...formData, free_shipping: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                        <Truck className="h-3 w-3" />
+                        Free Ship
+                      </span>
                     </label>
                   </div>
                 </div>

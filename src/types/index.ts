@@ -22,6 +22,7 @@ export interface Product {
   stock_quantity: number;
   available: boolean;
   featured: boolean;
+  free_shipping: boolean;
 
   // Images and metadata
   image_url: string | null;

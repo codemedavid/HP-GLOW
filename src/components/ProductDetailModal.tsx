@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Package, Beaker, ShoppingCart, Plus, Minus, Sparkles } from 'lucide-react';
+import { X, Package, Beaker, ShoppingCart, Plus, Minus, Sparkles, Truck } from 'lucide-react';
 import type { Product, ProductVariation } from '../types';
 
 interface ProductDetailModalProps {
@@ -92,6 +92,12 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
               {hasDiscount && (
                 <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-1 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold bg-gold-500/20 backdrop-blur-sm border border-gold-500/40 text-gold-300">
                   🎉 Sale
+                </span>
+              )}
+              {product.free_shipping && (
+                <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-1 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold bg-blue-500/20 backdrop-blur-sm border border-blue-500/40 text-blue-300">
+                  <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
+                  Free Ship
                 </span>
               )}
             </div>
