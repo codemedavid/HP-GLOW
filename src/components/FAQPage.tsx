@@ -132,7 +132,7 @@ const FAQPage: React.FC = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <a
-                            href="https://www.instagram.com/hpglowpeptides"
+                            href="https://www.instagram.com/hpglowpeppies"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 text-black px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"

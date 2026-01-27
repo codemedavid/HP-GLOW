@@ -294,7 +294,7 @@ ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
 Payment screenshot has been uploaded with this order.
 
 📱 CONTACT METHOD
-${'Instagram: https://www.instagram.com/hpglowpeptides'}
+${'Instagram: https://www.instagram.com/hpglowpeppies'}
 
 📋 ORDER ID: ${orderData.id}
 
@@ -338,7 +338,7 @@ Please confirm this order. Thank you!
   };
 
   const handleOpenContact = () => {
-    const contactUrl = 'https://www.instagram.com/hpglowpeptides';
+    const contactUrl = 'https://www.instagram.com/hpglowpeppies';
 
     if (contactUrl) {
       window.location.href = contactUrl;
@@ -953,7 +953,7 @@ Please confirm this order. Thank you!
                     <Instagram className="w-6 h-6 text-gold-600" />
                     <div className="text-left">
                       <p className="font-semibold text-gray-900">Instagram</p>
-                      <p className="text-sm text-gray-500">@hpglowpeptides</p>
+                      <p className="text-sm text-gray-500">@hpglowpeppies</p>
                     </div>
                   </div>
                   {contactMethod === 'instagram' && (

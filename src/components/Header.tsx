@@ -14,7 +14,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
 
   // Contact Links
   // Contact Links
-  const instagramUrl = 'https://www.instagram.com/hpglowpeptides';
+  const instagramUrl = 'https://www.instagram.com/hpglowpeppies';
 
 
   return (
