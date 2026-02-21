@@ -20,6 +20,7 @@ interface Order {
   customer_email: string;
   customer_phone: string;
   shipping_address: string;
+  shipping_barangay: string | null;
   shipping_city: string;
   shipping_state: string;
   shipping_zip_code: string;
@@ -28,6 +29,8 @@ interface Order {
   shipping_fee: number | null;
   order_items: OrderItem[];
   total_price: number;
+  voucher_code: string | null;
+  voucher_discount: number;
   payment_method_id: string | null;
   payment_method_name: string | null;
   payment_proof_url: string | null;
@@ -131,14 +134,14 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
             .single();
 
           if (varError) throw varError;
-          
+
           if (variation) {
             const newStock = Math.max(0, variation.stock_quantity - item.quantity);
             const { error: updateError } = await supabase
               .from('product_variations')
               .update({ stock_quantity: newStock })
               .eq('id', item.variation_id);
-            
+
             if (updateError) throw updateError;
           }
         } else {
@@ -150,14 +153,14 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
             .single();
 
           if (prodError) throw prodError;
-          
+
           if (product) {
             const newStock = Math.max(0, product.stock_quantity - item.quantity);
             const { error: updateError } = await supabase
               .from('products')
               .update({ stock_quantity: newStock })
               .eq('id', item.product_id);
-            
+
             if (updateError) throw updateError;
           }
         }
@@ -178,10 +181,10 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
       // Refresh orders and products
       await loadOrders();
       await refreshProducts();
-      
+
       // Trigger custom event to refresh inventory sales data
       window.dispatchEvent(new CustomEvent('orderConfirmed'));
-      
+
       alert(`Order confirmed! Stock has been deducted from inventory.`);
       setSelectedOrder(null);
     } catch (error) {
@@ -332,63 +335,56 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3 mb-4 md:mb-6">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'all' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'all' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">All Orders</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">{statusCounts.all}</p>
           </button>
           <button
             onClick={() => setStatusFilter('new')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'new' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'new' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">New</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-gold-600">{statusCounts.new}</p>
           </button>
           <button
             onClick={() => setStatusFilter('confirmed')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'confirmed' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'confirmed' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">Confirmed</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">{statusCounts.confirmed}</p>
           </button>
           <button
             onClick={() => setStatusFilter('processing')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'processing' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'processing' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">Processing</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">{statusCounts.processing}</p>
           </button>
           <button
             onClick={() => setStatusFilter('shipped')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'shipped' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'shipped' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">Shipped</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">{statusCounts.shipped}</p>
           </button>
           <button
             onClick={() => setStatusFilter('delivered')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'delivered' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'delivered' ? 'border-gold-500 shadow-gold-glow' : 'border-gray-200 hover:border-gold-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">Delivered</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-green-600">{statusCounts.delivered}</p>
           </button>
           <button
             onClick={() => setStatusFilter('cancelled')}
-            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${
-              statusFilter === 'cancelled' ? 'border-red-500' : 'border-gray-200 hover:border-red-300'
-            }`}
+            className={`bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-2 md:p-3 lg:p-4 border-2 transition-all ${statusFilter === 'cancelled' ? 'border-red-500' : 'border-gray-200 hover:border-red-300'
+              }`}
           >
             <p className="text-[10px] md:text-xs text-gray-600 mb-1">Cancelled</p>
             <p className="text-lg md:text-xl lg:text-2xl font-bold text-red-600">{statusCounts.cancelled}</p>
@@ -446,7 +442,7 @@ interface OrderCardProps {
 
 const OrderCard: React.FC<OrderCardProps> = ({ order, onView, getStatusColor, getStatusIcon }) => {
   const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
-  const finalTotal = order.total_price + (order.shipping_fee || 0);
+  const finalTotal = order.total_price - (order.voucher_discount || 0) + (order.shipping_fee || 0);
 
   return (
     <div className="bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-lg p-3 md:p-4 lg:p-6 border border-gold-300/30 hover:border-gold-400 transition-all">
@@ -461,13 +457,12 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onView, getStatusColor, ge
               <span className="hidden sm:inline">{order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}</span>
               <span className="sm:hidden">{order.order_status.charAt(0).toUpperCase()}</span>
             </span>
-            <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold ${
-              order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gold-100 text-gold-700'
-            }`}>
+            <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gold-100 text-gold-700'
+              }`}>
               {order.payment_status === 'paid' ? '✓ Paid' : 'Pending'}
             </span>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-xs md:text-sm">
             <div className="min-w-0">
               <span className="text-gray-500 text-[10px] md:text-xs">Customer</span>
@@ -526,7 +521,8 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
   isProcessing
 }) => {
   const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
-  const finalTotal = order.total_price + (order.shipping_fee || 0);
+  const voucherDiscount = order.voucher_discount || 0;
+  const finalTotal = order.total_price - voucherDiscount + (order.shipping_fee || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white">
@@ -554,14 +550,13 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
           {/* Order Status */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
             <div>
-              <span className={`inline-flex items-center px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold border ${
-                order.order_status === 'new' ? 'bg-gold-100 text-gold-800 border-gold-300' :
+              <span className={`inline-flex items-center px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold border ${order.order_status === 'new' ? 'bg-gold-100 text-gold-800 border-gold-300' :
                 order.order_status === 'confirmed' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                order.order_status === 'processing' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                order.order_status === 'shipped' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                order.order_status === 'delivered' ? 'bg-green-100 text-green-800 border-green-300' :
-                'bg-red-100 text-red-800 border-red-300'
-              }`}>
+                  order.order_status === 'processing' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                    order.order_status === 'shipped' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                      order.order_status === 'delivered' ? 'bg-green-100 text-green-800 border-green-300' :
+                        'bg-red-100 text-red-800 border-red-300'
+                }`}>
                 {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
               </span>
             </div>
@@ -603,6 +598,9 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
             <h3 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Shipping Address</h3>
             <div className="bg-gray-50 rounded-lg p-3 md:p-4 text-xs md:text-sm">
               <p>{order.shipping_address}</p>
+              {order.shipping_barangay && (
+                <p>{order.shipping_barangay}</p>
+              )}
               <p>{order.shipping_city}, {order.shipping_state} {order.shipping_zip_code}</p>
               <p>{order.shipping_country}</p>
               {order.shipping_location && (
@@ -664,10 +662,9 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
             <h3 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Payment Information</h3>
             <div className="bg-gray-50 rounded-lg p-3 md:p-4 space-y-1.5 md:space-y-2 text-xs md:text-sm">
               <p><span className="font-semibold">Method:</span> {order.payment_method_name || 'N/A'}</p>
-              <p className="flex items-center gap-2 flex-wrap"><span className="font-semibold">Status:</span> 
-                <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold ${
-                  order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gold-100 text-gold-700'
-                }`}>
+              <p className="flex items-center gap-2 flex-wrap"><span className="font-semibold">Status:</span>
+                <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gold-100 text-gold-700'
+                  }`}>
                   {order.payment_status === 'paid' ? 'Paid' : 'Pending'}
                 </span>
               </p>
@@ -681,6 +678,17 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
                 <span>Subtotal:</span>
                 <span className="font-semibold">₱{order.total_price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
               </div>
+              {voucherDiscount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] md:text-xs font-semibold">
+                      🏷️ {order.voucher_code}
+                    </span>
+                    <span>Voucher Discount:</span>
+                  </span>
+                  <span className="font-semibold text-green-600">-₱{voucherDiscount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
               {order.shipping_fee && order.shipping_fee > 0 && (
                 <div className="flex justify-between">
                   <span>Shipping Fee:</span>

@@ -218,7 +218,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
           contact_method: contactMethod || null,
           notes: notes.trim() || null,
           order_status: 'new',
-          payment_status: 'pending'
+          payment_status: 'pending',
+          voucher_code: appliedVoucher?.code || null,
+          voucher_discount: voucherDiscount || 0,
         }])
         .select()
         .single();
@@ -236,6 +238,14 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
         alert(`Failed to save order: ${errorMessage}\n\nPlease contact support if this issue persists.`);
         return;
+      }
+
+      // Increment voucher usage count if a voucher was applied
+      if (appliedVoucher) {
+        await supabase
+          .from('vouchers')
+          .update({ times_used: appliedVoucher.times_used + 1 })
+          .eq('id', appliedVoucher.id);
       }
 
       console.log('✅ Order saved to database:', orderData);
