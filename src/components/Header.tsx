@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
-import { ShoppingCart, Menu, X, Sparkles, Instagram, HelpCircle } from 'lucide-react';
+import { ShoppingCart, Menu, X, Sparkles, Phone, HelpCircle } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -12,9 +12,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { coaPageEnabled } = useCOAPageSetting();
 
-  // Contact Links
-  // Contact Links
-  const instagramUrl = 'https://www.instagram.com/hpglowpeppies';
+  const viberNumber = '09772189091';
 
 
   return (
@@ -142,14 +140,12 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                 </a>
                 <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
                   <a
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-sm shadow-md"
+                    href={`viber://chat?number=%2B${viberNumber}`}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all font-medium text-sm shadow-md"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Instagram className="w-4 h-4" />
-                    Instagram
+                    <Phone className="w-4 h-4" />
+                    Viber: {viberNumber}
                   </a>
 
 

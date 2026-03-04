@@ -128,16 +128,14 @@ const FAQPage: React.FC = () => {
                     <Sparkles className="w-8 h-8 text-gold-500 mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-white mb-2">Still have questions?</h2>
                     <p className="text-gray-400 mb-6">
-                        We're here to help! Reach out to us on Instagram or Viber.
+                        We're here to help! Reach out to us on Viber.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <a
-                            href="https://www.instagram.com/hpglowpeppies"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 text-black px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
+                            href="viber://chat?number=%2B639772189091"
+                            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
                         >
-                            📸 Instagram
+                            💬 Viber: 09772189091
                         </a>
 
                     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Instagram, Phone, Tag, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Package, CreditCard, Sparkles, Heart, Copy, Check, MessageCircle, Phone, Tag, X, Upload, Image as ImageIcon } from 'lucide-react';
 import type { CartItem, Voucher } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useVouchers } from '../hooks/useVouchers';
@@ -64,7 +64,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   // Payment
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [contactMethod, setContactMethod] = useState<'instagram'>('instagram');
+  const [contactMethod, setContactMethod] = useState<'viber'>('viber');
   const [notes, setNotes] = useState('');
 
   // Voucher
@@ -169,7 +169,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   const handlePlaceOrder = async () => {
     if (!contactMethod) {
-      alert('Please select your preferred contact method (Instagram or Viber).');
+      alert('Please select your preferred contact method (Viber).');
       return;
     }
 
@@ -304,7 +304,7 @@ ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
 Payment screenshot has been uploaded with this order.
 
 📱 CONTACT METHOD
-${'Instagram: https://www.instagram.com/hpglowpeppies'}
+${'Viber: 09772189091'}
 
 📋 ORDER ID: ${orderData.id}
 
@@ -348,7 +348,7 @@ Please confirm this order. Thank you!
   };
 
   const handleOpenContact = () => {
-    const contactUrl = 'https://www.instagram.com/hpglowpeppies';
+    const contactUrl = 'viber://chat?number=%2B639772189091';
 
     if (contactUrl) {
       window.location.href = contactUrl;
@@ -368,7 +368,7 @@ Please confirm this order. Thank you!
               <Sparkles className="w-7 h-7 text-gold-600" />
             </h1>
             <p className="text-gray-600 mb-8 text-base md:text-lg leading-relaxed">
-              Your order and payment screenshot have been submitted! Copy the order message below and send it to our Instagram for confirmation.
+              Your order and payment screenshot have been submitted! Copy the order message below and send it to our Viber for confirmation.
             </p>
 
             {/* Order Message Display */}
@@ -403,7 +403,7 @@ Please confirm this order. Thank you!
               {copied && (
                 <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
                   <Check className="w-4 h-4" />
-                  Message copied! Paste it in Instagram for order confirmation.
+                  Message copied! Paste it in Viber for order confirmation.
                 </p>
               )}
             </div>
@@ -413,14 +413,14 @@ Please confirm this order. Thank you!
               <button
                 type="button"
                 onClick={handleOpenContact}
-                className="w-full bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center justify-center gap-2 border border-gold-500/20 cursor-pointer"
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center justify-center gap-2 border border-purple-400 cursor-pointer"
               >
-                <Instagram className="w-5 h-5" />
-                Open Instagram
+                <Phone className="w-5 h-5" />
+                Open Viber
               </button>
 
               <p className="text-sm text-gray-600">
-                💡 If Instagram doesn't open, copy the message above and paste it manually
+                💡 If Viber doesn't open, copy the message above and manually send it to 09772189091
               </p>
             </div>
 
@@ -432,7 +432,7 @@ Please confirm this order. Thank you!
               <ul className="space-y-3 text-sm md:text-base text-gray-700">
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">1️⃣</span>
-                  <span>Your payment screenshot has been received! Send your order details via Instagram — we'll confirm within 24 hours or less.</span>
+                  <span>Your payment screenshot has been received! Send your order details via Viber — we'll confirm within 24 hours or less.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">2️⃣</span>
@@ -444,7 +444,7 @@ Please confirm this order. Thank you!
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-2xl">4️⃣</span>
-                  <span>Tracking numbers are sent via Instagram from 11 PM onwards.</span>
+                  <span>Tracking numbers are sent via Viber from 11 PM onwards.</span>
                 </li>
               </ul>
             </div>
@@ -953,20 +953,20 @@ Please confirm this order. Thank you!
               </h2>
               <div className="grid grid-cols-1 gap-3">
                 <button
-                  onClick={() => setContactMethod('instagram')}
-                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${contactMethod === 'instagram'
+                  onClick={() => setContactMethod('viber')}
+                  className={`p-4 rounded-lg border-2 transition-all flex items-center justify-between ${contactMethod === 'viber'
                     ? 'border-gold-500 bg-gold-50'
                     : 'border-gray-200 hover:border-gold-300'
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Instagram className="w-6 h-6 text-gold-600" />
+                    <Phone className="w-6 h-6 text-purple-600" />
                     <div className="text-left">
-                      <p className="font-semibold text-gray-900">Instagram</p>
-                      <p className="text-sm text-gray-500">@hpglowpeppies</p>
+                      <p className="font-semibold text-gray-900">Viber</p>
+                      <p className="text-sm text-gray-500">09772189091</p>
                     </div>
                   </div>
-                  {contactMethod === 'instagram' && (
+                  {contactMethod === 'viber' && (
                     <div className="w-6 h-6 bg-gold-600 rounded-full flex items-center justify-center">
                       <span className="text-black text-xs font-bold">✓</span>
                     </div>

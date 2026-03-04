@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertCircle, Search, RefreshCw, Eye, Download, Instagram, Phone, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertCircle, Search, RefreshCw, Eye, Download, Phone, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useMenu } from '../hooks/useMenu';
 
@@ -584,9 +584,11 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
                 <p className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold">Contact Method:</span>
                   {order.contact_method === 'instagram' ? (
-                    <span className="flex items-center gap-1 text-pink-600"><Instagram className="w-3 h-3 md:w-4 md:h-4" /> Instagram</span>
-                  ) : (
+                    <span className="flex items-center gap-1 text-pink-600">Instagram</span>
+                  ) : order.contact_method === 'viber' ? (
                     <span className="flex items-center gap-1 text-purple-600"><Phone className="w-3 h-3 md:w-4 md:h-4" /> Viber</span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-gray-600 capitalize">{order.contact_method}</span>
                   )}
                 </p>
               )}
