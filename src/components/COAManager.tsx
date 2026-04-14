@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Shield, ExternalLink, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import ImageUpload from './ImageUpload';
+import { buildJanoshikVerifyUrl, normalizeJanoshikKey } from '../utils/janoshik';
 
 interface COAReport {
   id: string;
@@ -148,11 +149,16 @@ const COAManager: React.FC = () => {
     e.preventDefault();
     
     try {
+      const payload = {
+        ...formData,
+        verification_key: normalizeJanoshikKey(formData.verification_key || ''),
+      };
+
       if (editingId) {
         // Update existing report
         const { error } = await supabase
           .from('coa_reports')
-          .update(formData)
+          .update(payload)
           .eq('id', editingId);
 
         if (error) throw error;
@@ -161,7 +167,7 @@ const COAManager: React.FC = () => {
         // Create new report
         const { error } = await supabase
           .from('coa_reports')
-          .insert([formData]);
+          .insert([payload]);
 
         if (error) throw error;
         alert('✅ COA report added successfully!');
@@ -501,7 +507,7 @@ const COAManager: React.FC = () => {
 
                   <div className="mt-3 flex items-center gap-3 text-sm">
                     <a
-                      href={`https://www.janoshik.com/verify/?key=${report.verification_key}`}
+                      href={buildJanoshikVerifyUrl(report.verification_key)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-sky-600 hover:text-sky-700 font-medium"
@@ -540,4 +546,3 @@ const COAManager: React.FC = () => {
 };
 
 export default COAManager;
-

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Award, CheckCircle, X, ExternalLink, Download, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { buildJanoshikVerifyUrl, normalizeJanoshikKey } from '../utils/janoshik';
 
 interface COAReport {
   id: string;
@@ -161,15 +162,25 @@ const COA: React.FC = () => {
                   </div>
 
                   <div className="space-y-2 md:space-y-3">
-                    <a
-                      href={`https://www.janoshik.com/verify/?key=${report.verification_key}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white px-3 py-2 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm md:text-base font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                      <Shield className="w-4 h-4 md:w-5 md:h-5" />
-                      Verify on Janoshik
-                    </a>
+                    {(() => {
+                      const hasKey = normalizeJanoshikKey(report.verification_key).length > 0;
+                      const verifyUrl = buildJanoshikVerifyUrl(report.verification_key);
+                      return (
+                        <a
+                          href={verifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-full flex items-center justify-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm md:text-base font-medium transition-all duration-300 shadow-lg ${hasKey ? 'bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white hover:shadow-xl' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                          aria-disabled={!hasKey}
+                          onClick={(e) => {
+                            if (!hasKey) e.preventDefault();
+                          }}
+                        >
+                          <Shield className="w-4 h-4 md:w-5 md:h-5" />
+                          Verify on Janoshik
+                        </a>
+                      );
+                    })()}
                     
                     <button
                       onClick={() => setSelectedImage(report.image_url)}
@@ -242,4 +253,3 @@ const COA: React.FC = () => {
 };
 
 export default COA;
-
