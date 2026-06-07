@@ -106,6 +106,48 @@ export function useCart() {
     localStorage.removeItem('peptide_cart');
   };
 
+  // Reconcile cart items with the latest product data so prices/stock stay
+  // current when products are updated (e.g. admin price changes, realtime sync).
+  // The cart stores snapshots at add-to-cart time, so without this the cart
+  // would keep showing stale prices until the item is removed and re-added.
+  const syncCartPrices = (products: Product[]) => {
+    setCartItems(prevItems => {
+      let changed = false;
+
+      const nextItems = prevItems.map(item => {
+        const freshProduct = products.find(p => p.id === item.product.id);
+        if (!freshProduct) return item; // product no longer available; leave as-is
+
+        let freshVariation = item.variation;
+        if (item.variation) {
+          const match = freshProduct.variations?.find(v => v.id === item.variation!.id);
+          if (match) freshVariation = match;
+        }
+
+        // Only replace references if pricing/stock actually changed to avoid
+        // unnecessary re-renders and update loops.
+        const productChanged =
+          freshProduct.base_price !== item.product.base_price ||
+          freshProduct.discount_price !== item.product.discount_price ||
+          freshProduct.discount_active !== item.product.discount_active ||
+          freshProduct.stock_quantity !== item.product.stock_quantity;
+
+        const variationChanged =
+          !!freshVariation && !!item.variation &&
+          (freshVariation.price !== item.variation.price ||
+            freshVariation.discount_price !== item.variation.discount_price ||
+            freshVariation.stock_quantity !== item.variation.stock_quantity);
+
+        if (!productChanged && !variationChanged) return item;
+
+        changed = true;
+        return { ...item, product: freshProduct, variation: freshVariation };
+      });
+
+      return changed ? nextItems : prevItems;
+    });
+  };
+
   // Helper function to get current price for a cart item (respects current discounts)
   const getCurrentItemPrice = (item: CartItem): number => {
     if (item.variation) {
@@ -140,6 +182,7 @@ export function useCart() {
     updateQuantity,
     removeFromCart,
     clearCart,
+    syncCartPrices,
     getTotalPrice,
     getTotalItems
   };

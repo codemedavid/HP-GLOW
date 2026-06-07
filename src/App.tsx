@@ -19,6 +19,14 @@ function MainApp() {
   const cart = useCart();
   const { menuItems, refreshProducts } = useMenu();
   const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
+
+  // Keep cart prices/stock in sync with the latest product data so the cart
+  // reflects admin/realtime updates instead of showing stale add-to-cart prices.
+  React.useEffect(() => {
+    if (menuItems.length > 0) {
+      cart.syncCartPrices(menuItems);
+    }
+  }, [menuItems]);
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all');
 
   const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
